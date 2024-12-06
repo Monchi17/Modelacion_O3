@@ -3,10 +3,20 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import random
+import streamlit as st
 
-# Dimensiones de la casa
-largo_casa = 2.440 * 2
-ancho_casa = 2.440 * 6
+# Título de la aplicación
+st.title("Configuración de dimensiones de la casa")
+
+# Inputs para las dimensiones de la casa
+largo_casa = st.number_input("Ingrese el largo de la casa (en metros):", min_value=0.0, value=2.440 * 2, step=0.01)
+ancho_casa = st.number_input("Ingrese el ancho de la casa (en metros):", min_value=0.0, value=2.440 * 6, step=0.01)
+
+# Mostrar las dimensiones ingresadas
+st.write(f"Dimensiones ingresadas: Largo = {largo_casa} m, Ancho = {ancho_casa} m")
+
+# Puedes usar las variables largo_casa y ancho_casa en el resto de tu código
+
 
 # Clase para definir habitaciones
 class Habitacion:
