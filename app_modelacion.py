@@ -84,7 +84,8 @@ habitaciones_opcionales_sin_P8_P11 = [
 ]
 habitaciones_finales = [
     Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.487), (0, 1.487)]),
-    Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)])
+    Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
+    Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)])
 ]
 
 # Colocar habitaciones fijas
