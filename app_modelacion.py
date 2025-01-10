@@ -155,8 +155,8 @@ if largo_casa == 2.440*2 and ancho_casa == 2.440*3:
 
     for i, casa in enumerate(planos_aleatorios):
          with cols[i % 2]:  # Alternar entre las columnas
-        st.write(f"Plano {i + 1}")
-        casa.visualizar_plano()
+         st.write(f"Plano {i + 1}")
+         casa.visualizar_plano()
 #-----------------------------------------------------v2---------------------------------------------------
 elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
     
