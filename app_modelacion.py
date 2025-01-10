@@ -98,7 +98,7 @@ if largo_casa == 2.440*2 and ancho_casa == 2.440*3:
             return self.area_usada <= self.area_total and self.posicion_y + self.altura_fila_actual <= self.ancho
     
         def visualizar_plano(self):
-            fig, ax = plt.subplots(dpi=30) #<--------------------------------------------------------------
+            fig, ax = plt.subplots(dpi=30)
             
             for hab in self.habitaciones:
                 poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
@@ -370,11 +370,15 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
         # Visualizar los planos
         planos = [casa1, casa2]
 
+      
+
+        # Visualizar los planos en las columnas
         for j, plano in enumerate(planos):
-            with cols[j % 3]:  # Alternar entre las columnas
-                #st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
+            col = cols[j % 3]  # Seleccionar la columna correspondiente
+            with col:
+                st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
                 fig = plano.visualizar_plano()  # Generar la figura
-                st.pyplot(fig)  # Mostrar la figura en Streamlit
+                st.pyplot(fig)  # Mostrar la figura en Streamlit # Mostrar la figura en Streamlit
 
 #------------------------V3--------------------
 
