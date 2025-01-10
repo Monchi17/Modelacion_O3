@@ -169,83 +169,82 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
                 x, y = zip(*self.vertices)
                 return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
     
+    class Casa:
+            def __init__(self, largo, ancho):
+                self.largo = largo
+                self.ancho = ancho
+                self.area_total = largo * ancho
+                self.habitaciones = []
+                self.area_usada = 0
+                self.posicion_x = 0
+                self.posicion_y = 0
+                self.altura_fila_actual = 0  # Nueva variable para la altura de la fila actual
     
-        class Casa:
-                def __init__(self, largo, ancho):
-                    self.largo = largo
-                    self.ancho = ancho
-                    self.area_total = largo * ancho
-                    self.habitaciones = []
-                    self.area_usada = 0
-                    self.posicion_x = 0
-                    self.posicion_y = 0
-                    self.altura_fila_actual = 0  # Nueva variable para la altura de la fila actual
-        
-                def agregar_habitacion(self, habitacion):
-                    if self.area_usada + habitacion.area() <= self.area_total:
-                        # Verifica si la habitación cabe en el ancho disponible de la fila
-                        if self.posicion_x + habitacion.ancho > self.largo:
-                            # Cambiar a una nueva fila si la habitación no cabe
-                            self.posicion_x = 0
-                            self.posicion_y += self.altura_fila_actual
-                            self.altura_fila_actual = 0  # Restablecer la altura de la fila
-        
-                        # Desplazar los vértices de la habitación actual
-                        vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
-                        habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
-                        self.habitaciones.append(habitacion_desplazada)
-                        self.area_usada += habitacion.area()
-        
-                        # Actualiza la posición y la altura de la fila actual
-                        self.posicion_x += habitacion.ancho
-                        self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
-        
-                        # Verificación temprana para detener si se excede el ancho o alto de la casa
-                        if self.posicion_y + self.altura_fila_actual > self.ancho:
-                            return False
-                        return True
-                    return False
-        
-                def agregar_habitacion_inferior(self, habitacion_final):
-                    # Coloca la habitación en la última fila (parte inferior del plano)
-                    if self.posicion_y + self.altura_fila_actual + habitacion_final.altura <= self.ancho:
+            def agregar_habitacion(self, habitacion):
+                if self.area_usada + habitacion.area() <= self.area_total:
+                    # Verifica si la habitación cabe en el ancho disponible de la fila
+                    if self.posicion_x + habitacion.ancho > self.largo:
+                        # Cambiar a una nueva fila si la habitación no cabe
                         self.posicion_x = 0
-                        self.posicion_y += self.altura_fila_actual  # Mueve y a la siguiente fila para la habitación final
-        
-                        vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion_final.vertices]
-                        habitacion_desplazada = Habitacion(habitacion_final.nombre, vertices_desplazados)
-                        self.habitaciones.append(habitacion_desplazada)
-                        self.area_usada += habitacion_final.area()
-        
-                        # Ajusta posicion_x y altura_fila_actual para verificar al final
-                        self.posicion_x += habitacion_final.ancho
-                        self.altura_fila_actual = habitacion_final.altura
-                        return True
-                    return False
-        
-                def cumple_dimensiones_exactas(self):
-                    # Verifica que el último plano cubre todo el ancho y alto de la casa
-                    return self.posicion_x == self.largo and self.posicion_y + self.altura_fila_actual == self.ancho
-        
-                def es_valida(self):
-                    # Verifica que la disposición cumple con las dimensiones de la casa
-                    return (self.area_usada <= self.area_total and 
-                            self.posicion_y + self.altura_fila_actual <= self.ancho)
-        
-                def visualizar_plano(self):
-                    fig, ax = plt.subplots()
-                    for hab in self.habitaciones:
-                        poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
-                        ax.add_patch(poligono)
-                        cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
-                        cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
-                        ax.text(cx, cy, hab.nombre, ha='center', va='center')
-                    
-                    ax.set_xlim(0, self.largo)
-                    ax.set_ylim(0, self.ancho)
-                    plt.gca().set_aspect('equal', adjustable='box')
-                    plt.show()
-        
+                        self.posicion_y += self.altura_fila_actual
+                        self.altura_fila_actual = 0  # Restablecer la altura de la fila
+    
+                    # Desplazar los vértices de la habitación actual
+                    vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
+                    habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
+                    self.habitaciones.append(habitacion_desplazada)
+                    self.area_usada += habitacion.area()
+    
+                    # Actualiza la posición y la altura de la fila actual
+                    self.posicion_x += habitacion.ancho
+                    self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
+    
+                    # Verificación temprana para detener si se excede el ancho o alto de la casa
+                    if self.posicion_y + self.altura_fila_actual > self.ancho:
+                        return False
+                    return True
+                return False
+    
+            def agregar_habitacion_inferior(self, habitacion_final):
+                # Coloca la habitación en la última fila (parte inferior del plano)
+                if self.posicion_y + self.altura_fila_actual + habitacion_final.altura <= self.ancho:
+                    self.posicion_x = 0
+                    self.posicion_y += self.altura_fila_actual  # Mueve y a la siguiente fila para la habitación final
+    
+                    vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion_final.vertices]
+                    habitacion_desplazada = Habitacion(habitacion_final.nombre, vertices_desplazados)
+                    self.habitaciones.append(habitacion_desplazada)
+                    self.area_usada += habitacion_final.area()
+    
+                    # Ajusta posicion_x y altura_fila_actual para verificar al final
+                    self.posicion_x += habitacion_final.ancho
+                    self.altura_fila_actual = habitacion_final.altura
+                    return True
+                return False
+    
+            def cumple_dimensiones_exactas(self):
+                # Verifica que el último plano cubre todo el ancho y alto de la casa
+                return self.posicion_x == self.largo and self.posicion_y + self.altura_fila_actual == self.ancho
+    
+            def es_valida(self):
+                # Verifica que la disposición cumple con las dimensiones de la casa
+                return (self.area_usada <= self.area_total and 
+                        self.posicion_y + self.altura_fila_actual <= self.ancho)
+    
+            def visualizar_plano(self):
+                fig, ax = plt.subplots()
+                for hab in self.habitaciones:
+                    poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+                    ax.add_patch(poligono)
+                    cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
+                    cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
+                    ax.text(cx, cy, hab.nombre, ha='center', va='center')
+                
+                ax.set_xlim(0, self.largo)
+                ax.set_ylim(0, self.ancho)
+                plt.gca().set_aspect('equal', adjustable='box')
+                plt.show()
+    
     
         # Lista de habitaciones estándar (excluyendo P5, P8 y P11)
         habitaciones_v1 = [
