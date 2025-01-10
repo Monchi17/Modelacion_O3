@@ -3,6 +3,7 @@ from itertools import permutations
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+import random
 
 # Título de la aplicación
 st.title("Generador de Planos para Casas")
@@ -27,107 +28,128 @@ largo_casa, ancho_casa = opciones[opcion_seleccionada]
 
 
 #st.write(f"Area del plano {largo_casa * ancho_casa} M^2")
-
-# Clase para definir habitaciones
-class Habitacion:
-    def __init__(self, nombre, vertices):
-        self.nombre = nombre
-        self.vertices = vertices
-        self.ancho = max(x for x, y in vertices) - min(x for x, y in vertices)
-        self.largo = max(y for x, y in vertices) - min(y for x, y in vertices)
-
-# Función para actualizar espacios
-def actualizar_espacios(espacios, habitacion, x_offset, y_offset):
-    nuevos_espacios = []
-    for x, y, ancho, alto in espacios:
-        if not (x_offset + habitacion.ancho <= x or
-                x_offset >= x + ancho or
-                y_offset + habitacion.largo <= y or
-                y_offset >= y + alto):
-            if x_offset > x:
-                nuevos_espacios.append((x, y, x_offset - x, alto))
-            if x_offset + habitacion.ancho < x + ancho:
-                nuevos_espacios.append((x_offset + habitacion.ancho, y, (x + ancho) - (x_offset + habitacion.ancho), alto))
-            if y_offset > y:
-                nuevos_espacios.append((x, y, ancho, y_offset - y))
-            if y_offset + habitacion.largo < y + alto:
-                nuevos_espacios.append((x, y_offset + habitacion.largo, ancho, (y + alto) - (y_offset + habitacion.largo)))
-        else:
-            nuevos_espacios.append((x, y, ancho, alto))
-    return nuevos_espacios
-
-# Función para colocar habitaciones
-def colocar_habitaciones(habitaciones, largo_casa, ancho_casa, espacios):
-    colocadas = []
-    for habitacion in habitaciones:
-        for x, y, ancho, alto in espacios:
-            if habitacion.ancho <= ancho and habitacion.largo <= alto:
-                vertices_ajustados = [(x + vx, y + vy) for vx, vy in habitacion.vertices]
-                colocadas.append(Habitacion(habitacion.nombre, vertices_ajustados))
-                espacios = actualizar_espacios(espacios, habitacion, x, y)
-                break
-    return colocadas, espacios
-
-# Función para plotear habitaciones
-def plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano):
-    fig, ax = plt.subplots()
-    patches = []
-    for habitacion in habitaciones:
-        polygon = Polygon(habitacion.vertices, closed=True)
-        patches.append(polygon)
-        x_coords = [v[0] for v in habitacion.vertices]
-        y_coords = [v[1] for v in habitacion.vertices]
-        ax.text(
-            sum(x_coords) / len(x_coords),
-            sum(y_coords) / len(y_coords),
-            habitacion.nombre, color="black", ha="center", va="center"
-        )
-    p = PatchCollection(patches, alpha=0.5, edgecolor="black")
-    ax.add_collection(p)
-    ax.set_xlim(-largo_casa, largo_casa)
-    ax.set_ylim(0, ancho_casa)
-    ax.set_aspect("equal")
-    plt.title(f"Plano {numero_plano}")
-    st.pyplot(fig)
-
-# Habitaciones opcionales y finales
-habitaciones_opcionales_sin_P8_P11 = [
-    Habitacion("P6", [(0, 0), (2.295, 0), (2.295, 2.433), (0, 2.433)]),
-    Habitacion("P7", [(0, 0), (2.585, 0), (2.585, 3.920), (0, 3.920)]),
-    Habitacion("P9", [(0, 0), (2.295, 0), (2.295, 4.779), (0, 4.779)]),
-    Habitacion("P10", [(0, 0), (2.585, 0), (2.585, 4.880), (0, 4.880)])
-]
-habitaciones_finales = [
-    Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.487), (0, 1.487)]),
-    Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
-    Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)])
-]
-
-# Colocar habitaciones fijas
-habitaciones_fijas = [
-    Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
-    Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
-    Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
-    Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)])
-]
-
-espacios_restantes = [(0, 0, largo_casa, ancho_casa)]
-habitaciones_colocadas_fijas, espacios_actualizados = colocar_habitaciones(
-    habitaciones_fijas, largo_casa, ancho_casa, espacios_restantes[:]
-)
-
-# Generar combinaciones para las habitaciones opcionales sin P8 y P11
-combinaciones_sin_P8_P11 = permutations(habitaciones_opcionales_sin_P8_P11)
-
-# Procesar combinaciones y plotear
-if st.button("Generar planos"):
-    numero_plano = 1
-    for combinacion in combinaciones_sin_P8_P11:
-        for final in habitaciones_finales:
-            combinacion_completa = list(combinacion) + [final]
-            habitaciones_colocadas_opcionales, _ = colocar_habitaciones(
-                combinacion_completa, largo_casa, ancho_casa, espacios_actualizados[:]
-            )
-            plano = habitaciones_colocadas_fijas + habitaciones_colocadas_opcionales
-            plotear_habitaciones(plano, largo_casa, ancho_casa, numero_plano)
-            numero_plano += 1
+#-----------------------------------V1------------------------------------
+if largo_casa == 2.440*2 and ancho_casa == 2.440*3:
+    # Clase Habitacion
+    class Habitacion:
+        def __init__(self, nombre, vertices):
+            self.nombre = nombre
+            self.vertices = vertices
+            self.altura = max(y for x, y in vertices)
+            self.ancho = max(x for x, y in vertices)
+    
+        def area(self):
+            x, y = zip(*self.vertices)
+            return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
+    
+    
+    # Clase Casa
+    class Casa:
+        def __init__(self, largo, ancho):
+            self.largo = largo
+            self.ancho = ancho
+            self.area_total = largo * ancho
+            self.habitaciones = []
+            self.area_usada = 0
+            self.posicion_x = 0
+            self.posicion_y = 0
+            self.altura_fila_actual = 0  # Nueva variable para la altura de la fila actual
+    
+        def agregar_habitacion(self, habitacion):
+            if self.area_usada + habitacion.area() <= self.area_total:
+                # Verifica si la habitación cabe en el ancho disponible de la fila
+                if self.posicion_x + habitacion.ancho > self.largo:
+                    # Cambiar a una nueva fila si la habitación no cabe
+                    self.posicion_x = 0
+                    self.posicion_y += self.altura_fila_actual
+                    self.altura_fila_actual = 0  # Restablecer la altura de la fila
+    
+                vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
+                habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
+                self.habitaciones.append(habitacion_desplazada)
+                self.area_usada += habitacion.area()
+                self.posicion_x += habitacion.ancho
+                self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
+    
+                if self.posicion_y + self.altura_fila_actual > self.ancho:
+                    return False
+                return True
+            return False
+    
+        def agregar_habitacion_inferior(self, habitacion_final):
+            if self.posicion_y + self.altura_fila_actual + habitacion_final.altura <= self.ancho:
+                self.posicion_x = 0
+                self.posicion_y += self.altura_fila_actual  # Mueve y a la siguiente fila para la habitación final
+    
+                vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion_final.vertices]
+                habitacion_desplazada = Habitacion(habitacion_final.nombre, vertices_desplazados)
+                self.habitaciones.append(habitacion_desplazada)
+                self.area_usada += habitacion_final.area()
+    
+                self.posicion_x += habitacion_final.ancho
+                self.altura_fila_actual = habitacion_final.altura
+                return True
+            return False
+    
+        def cumple_dimensiones_exactas(self):
+            return self.posicion_x == self.largo and self.posicion_y + self.altura_fila_actual == self.ancho
+    
+        def es_valida(self):
+            return self.area_usada <= self.area_total and self.posicion_y + self.altura_fila_actual <= self.ancho
+    
+        def visualizar_plano(self):
+            fig, ax = plt.subplots()
+            for hab in self.habitaciones:
+                poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+                ax.add_patch(poligono)
+                cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
+                cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
+                ax.text(cx, cy, hab.nombre, ha='center', va='center')
+    
+            ax.set_xlim(0, self.largo)
+            ax.set_ylim(0, self.ancho)
+            plt.gca().set_aspect('equal', adjustable='box')
+            st.pyplot(fig)
+    
+    
+    # Definir habitaciones
+    habitaciones_v1 = [
+        Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
+        Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
+        Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
+        Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]),
+    ]
+    
+    habitaciones_finales = [
+        Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.487), (0, 1.487)]),
+        Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
+        Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)]),
+    ]
+    
+    
+    # Generar combinaciones
+    def generar_combinaciones(habitaciones):
+        combinaciones_validas = []
+        for habitacion_final in habitaciones_finales:
+            for permutacion in permutations(habitaciones):
+                casa = Casa(largo=largo_casa, ancho=ancho_casa)
+                es_valido = True
+                for habitacion in permutacion:
+                    if not casa.agregar_habitacion(habitacion):
+                        es_valido = False
+                        break
+                if es_valido and casa.es_valida() and casa.agregar_habitacion_inferior(habitacion_final):
+                    if casa.cumple_dimensiones_exactas():
+                        combinaciones_validas.append(casa)
+        return combinaciones_validas
+    
+    
+    combinaciones = generar_combinaciones(habitaciones_v1)
+    
+    planos_aleatorios = random.sample(combinaciones, min(3, len(combinaciones)))  # Seleccionar 3 planos al azar
+    
+    # Mostrar los planos seleccionados
+    st.write("Planos generados:")
+    for i, casa in enumerate(planos_aleatorios):
+        st.write(f"Plano {i + 1}")
+        casa.visualizar_plano()
