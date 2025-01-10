@@ -367,18 +367,30 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
         casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
         casa2.visualizar_plano()
 
-        # Visualizar los planos
+           # Lista de planos
         planos = [casa1, casa2]
-
-      
-
+    
         # Visualizar los planos en las columnas
         for j, plano in enumerate(planos):
             col = cols[j % 3]  # Seleccionar la columna correspondiente
             with col:
                 st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
-                fig = plano.visualizar_plano()  # Generar la figura
-                st.pyplot(fig)  # Mostrar la figura en Streamlit # Mostrar la figura en Streamlit
+                
+                # Crear la figura y visualizar el plano
+                fig, ax = plt.subplots()
+                for hab in plano.habitaciones:
+                    poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+                    ax.add_patch(poligono)
+                    cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
+                    cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
+                    ax.text(cx, cy, hab.nombre, ha='center', va='center')
+    
+                ax.set_xlim(0, plano.largo)
+                ax.set_ylim(0, plano.ancho)
+                ax.set_aspect('equal', adjustable='box')
+    
+                # Pasar explícitamente la figura a st.pyplot()
+                st.pyplot(fig)
 
 #------------------------V3--------------------
 
