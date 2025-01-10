@@ -98,7 +98,7 @@ if largo_casa == 2.440*2 and ancho_casa == 2.440*3:
             return self.area_usada <= self.area_total and self.posicion_y + self.altura_fila_actual <= self.ancho
     
         def visualizar_plano(self):
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(5, 3))
             for hab in self.habitaciones:
                 poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
                 ax.add_patch(poligono)
