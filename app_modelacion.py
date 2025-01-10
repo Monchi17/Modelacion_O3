@@ -7,9 +7,24 @@ from matplotlib.collections import PatchCollection
 # Título de la aplicación
 st.title("Generador de Planos para Habitaciones")
 
-# Inputs para las dimensiones de la casa
-largo_casa = st.number_input("Ingrese el largo de la casa (en metros):", min_value=0.0, value=2.440 * 2, step=0.01)
-ancho_casa = st.number_input("Ingrese el ancho de la casa (en metros):", min_value=0.0, value=2.440 * 6, step=0.01)
+# Opciones predefinidas para las dimensiones de la casa
+opciones = {
+    "1) Ancho 2440*2, Largo 2440*3": (2440 * 2, 2440 * 3),
+    "2) Ancho 2440*2, Largo 2440*4": (2440 * 2, 2440 * 4),
+    "3) Ancho 2440*2, Largo 2440*6": (2440 * 2, 2440 * 6),
+    "4) Ancho 2440*3, Largo 2440*6": (2440 * 3, 2440 * 6),
+    "5) Ancho 2440*4, Largo 2440*6": (2440 * 4, 2440 * 6),
+}
+
+# Input para seleccionar la opción
+opcion_seleccionada = st.selectbox(
+    "Seleccione las dimensiones de la casa:",
+    opciones.keys()
+)
+
+# Asignar las dimensiones según la selección
+largo_casa, ancho_casa = opciones[opcion_seleccionada]
+
 
 st.write(f"Dimensiones ingresadas: Largo = {largo_casa} m, Ancho = {ancho_casa} m")
 
