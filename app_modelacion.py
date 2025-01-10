@@ -309,7 +309,7 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
 
         # Añadir la nueva casa a la lista
         combinaciones_sin_p5.append(nueva_casa)
-
+    cols = st.columns(3)
     for i in range(3): #Da 3 combinaciones
         class Habitacion:
             def __init__(self, nombre, vertices):
@@ -366,6 +366,15 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
 
         casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
         casa2.visualizar_plano()
+
+        # Visualizar los planos
+        planos = [casa1, casa2]
+
+        for j, plano in enumerate(planos):
+            with cols[j % 3]:  # Alternar entre las columnas
+                st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
+                fig = plano.visualizar_plano()  # Generar la figura
+                st.pyplot(fig)  # Mostrar la figura en Streamlit
 
 #------------------------V3--------------------
 
