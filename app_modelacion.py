@@ -337,7 +337,7 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
                 ax.set_xlim(0, self.largo)
                 ax.set_ylim(0, self.ancho)
                 plt.gca().set_aspect('equal', adjustable='box')
-                plt.show()
+                st.pyplot(fig)
 
         # Dimensiones de la casa
         largo_casa = 2*2.440
