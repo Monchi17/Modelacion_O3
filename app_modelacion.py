@@ -502,3 +502,461 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*6:
 
     planos_generados = planos_guardados
 
+#------------------------V4--------------------------
+
+elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
+    # Dimensiones de la casa
+    largo_casa = 2.440 * 2
+    ancho_casa = 2.440 * 6
+
+    # Clase para definir habitaciones
+    class Habitacion:
+        def __init__(self, nombre, vertices):
+            self.nombre = nombre
+            self.vertices = vertices
+            self.ancho = max(x for x, y in vertices) - min(x for x, y in vertices)
+            self.largo = max(y for x, y in vertices) - min(y for x, y in vertices)
+
+    # Función para actualizar espacios
+    def actualizar_espacios(espacios, habitacion, x_offset, y_offset):
+        nuevos_espacios = []
+        for x, y, ancho, alto in espacios:
+            if not (x_offset + habitacion.ancho <= x or  # A la izquierda del espacio
+                    x_offset >= x + ancho or           # A la derecha del espacio
+                    y_offset + habitacion.largo <= y or  # Debajo del espacio
+                    y_offset >= y + alto):               # Encima del espacio
+                if x_offset > x:  # Espacio a la izquierda
+                    nuevos_espacios.append((x, y, x_offset - x, alto))
+                if x_offset + habitacion.ancho < x + ancho:  # Espacio a la derecha
+                    nuevos_espacios.append((x_offset + habitacion.ancho, y, (x + ancho) - (x_offset + habitacion.ancho), alto))
+                if y_offset > y:  # Espacio abajo
+                    nuevos_espacios.append((x, y, ancho, y_offset - y))
+                if y_offset + habitacion.largo < y + alto:  # Espacio arriba
+                    nuevos_espacios.append((x, y_offset + habitacion.largo, ancho, (y + alto) - (y_offset + habitacion.largo)))
+            else:
+                nuevos_espacios.append((x, y, ancho, alto))  # Sin cambios
+        return nuevos_espacios
+
+    # Función para colocar habitaciones
+    def colocar_habitaciones(habitaciones, largo_casa, ancho_casa, espacios):
+        colocadas = []
+        for habitacion in habitaciones:
+            for x, y, ancho, alto in espacios:
+                if habitacion.ancho <= ancho and habitacion.largo <= alto:
+                    vertices_ajustados = [(x + vx, y + vy) for vx, vy in habitacion.vertices]
+                    colocadas.append(Habitacion(habitacion.nombre, vertices_ajustados))
+                    espacios = actualizar_espacios(espacios, habitacion, x, y)
+                    break
+        return colocadas, espacios
+
+    # Función para plotear habitaciones
+    def plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano):
+        fig, ax = plt.subplots()
+        patches = []
+        for habitacion in habitaciones:
+            polygon = Polygon(habitacion.vertices, closed=True)
+            patches.append(polygon)
+            x_coords = [v[0] for v in habitacion.vertices]
+            y_coords = [v[1] for v in habitacion.vertices]
+            ax.text(
+                sum(x_coords) / len(x_coords),
+                sum(y_coords) / len(y_coords),
+                habitacion.nombre, color="black", ha="center", va="center"
+            )
+        p = PatchCollection(patches, alpha=0.5, edgecolor="black")
+        ax.add_collection(p)
+        ax.set_xlim(-largo_casa, largo_casa )  # Ajustado para doble ancho (izquierda + derecha)
+        ax.set_ylim(0, ancho_casa)
+        ax.set_aspect("equal")
+        plt.title(f"Plano {numero_plano}")
+        st.pyplot(fig)
+
+    # Habitaciones opcionales y finales
+    habitaciones_opcionales_sin_P8_P11 = [
+        Habitacion("P6", [(0, 0), (2.295, 0), (2.295, 2.433), (0, 2.433)]),
+        Habitacion("P7", [(0, 0), (2.585, 0), (2.585, 3.921), (0, 3.921)]),
+        Habitacion("P9", [(0, 0), (2.295, 0), (2.295, 4.779), (0, 4.779)]),
+        Habitacion("P10", [(0, 0), (2.585, 0), (2.585, 4.880), (0, 4.880)])
+    ]
+    habitaciones_finales = [
+        Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.488), (0, 1.488)]),
+        Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
+        Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.480), (0, 1.480)]),
+    ]
+
+    # Colocar habitaciones fijas
+    habitaciones_fijas = [
+        Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
+        Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
+        Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
+        Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)])
+    ]
+
+    espacios_restantes = [(0, 0, largo_casa, ancho_casa)]
+    habitaciones_colocadas_fijas, espacios_actualizados = colocar_habitaciones(
+        habitaciones_fijas, largo_casa, ancho_casa, espacios_restantes[:]
+    )
+
+    # Generar combinaciones para las habitaciones opcionales sin P8 y P11
+    combinaciones_sin_P8_P11 = permutations(habitaciones_opcionales_sin_P8_P11)
+
+    # Función para verificar si un plano cumple con las dimensiones de la casa
+    def verificar_dimensiones(habitaciones, largo_casa, ancho_casa, tolerancia=1e-3):
+        max_x = max(max(v[0] for v in habitacion.vertices) for habitacion in habitaciones)
+        max_y = max(max(v[1] for v in habitacion.vertices) for habitacion in habitaciones)
+        return abs(max_x - largo_casa) <= tolerancia and abs(max_y - ancho_casa) <= tolerancia
+
+    # Función para normalizar el plano (ordenar habitaciones y vértices)
+    def normalizar_plano(habitaciones, decimales=3):
+        return tuple(
+            tuple(sorted((round(v[0], decimales), round(v[1], decimales)) for v in habitacion.vertices))
+            for habitacion in sorted(habitaciones, key=lambda h: (min(v[0] for v in h.vertices), min(v[1] for v in h.vertices)))
+        )
+
+    # Probar todas las combinaciones y agregar P8 o P11 al final
+    planos_unicos = set()  # Conjunto para almacenar disposiciones únicas
+    planos_guardados = []
+    numero_plano = 1
+    contador_combinaciones = 0
+
+    for combinacion in combinaciones_sin_P8_P11:  # Primer ciclo: todas las combinaciones de habitaciones opcionales
+        for final in habitaciones_finales:  # Segundo ciclo: agrega P8 o P11 a cada combinación
+            contador_combinaciones += 1
+            combinacion_completa = list(combinacion) + [final]
+            habitaciones_colocadas_opcionales, _ = colocar_habitaciones(
+                combinacion_completa, largo_casa, ancho_casa, espacios_actualizados[:]
+            )
+            plano = habitaciones_colocadas_fijas + habitaciones_colocadas_opcionales
+            plano_tupla = tuple((h.nombre, tuple(h.vertices)) for h in plano)
+            if plano_tupla not in planos_unicos:
+                planos_unicos.add(plano_tupla)
+                planos_guardados.append(plano)
+            # Normalizar el plano para verificar unicidad
+            plano_normalizado = normalizar_plano(plano)
+            
+            # Verificar dimensiones y unicidad antes de agregar al conjunto único y plotear
+            if plano_normalizado not in planos_unicos and verificar_dimensiones(plano, largo_casa, ancho_casa):
+                planos_unicos.add(plano_normalizado)  # Agregar disposición única al conjunto
+                numero_plano += 1
+
+
+    planos_generados = planos_guardados
+
+    largo_casa=2.440*3
+    ancho_casa=2.440*6
+        # Función para guardar y plotear habitaciones
+    def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano, planos_guardados):
+        # Guardar el plano actual
+        planos_guardados.append(habitaciones)
+
+        # Crear el gráfico del plano
+        fig, ax = plt.subplots()
+        patches = []
+        for habitacion in habitaciones:
+            polygon = Polygon(habitacion.vertices, closed=True)
+            patches.append(polygon)
+            x_coords = [v[0] for v in habitacion.vertices]
+            y_coords = [v[1] for v in habitacion.vertices]
+            ax.text(
+                sum(x_coords) / len(x_coords),
+                sum(y_coords) / len(y_coords),
+                habitacion.nombre, color="black", ha="center", va="center"
+            )
+        p = PatchCollection(patches, alpha=0.5, edgecolor="black") 
+        ax.add_collection(p)
+        ax.set_xlim(-largo_casa, largo_casa)  # Ajustado para doble ancho (izquierda + derecha)
+        ax.set_ylim(0, ancho_casa)
+        ax.set_aspect("equal")
+        plt.title(f"Plano {numero_plano}")
+        st.pyplot(fig)
+
+    # Habitaciones a la izquierda
+    habitaciones_izquierda = [
+        Habitacion("P14", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
+        Habitacion("P15", [(0, 0), (2.440, 0), (2.440, 4.007), (0, 4.007)]),
+        Habitacion("P16", [(0, 0), (2.440, 0), (2.440, 4.194), (0, 4.194)]),
+        Habitacion("P17", [(0, 0), (2.440, 0), (2.440, 2.228), (0, 2.228)])
+    ]
+
+    # Seleccionar un plano al azar
+    plano_aleatorio = random.choice(planos_generados)
+
+    # Lista para guardar todos los planos generados
+    planos_guardados = []
+
+    # Generar combinaciones para las habitaciones a la izquierda
+    combinaciones_izquierda = permutations(habitaciones_izquierda)
+
+    # Probar todas las combinaciones de habitaciones a la izquierda
+    numero_plano = 1
+    for combinacion in combinaciones_izquierda:
+        # Ajustar la colocación en una sola columna
+        espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
+        habitaciones_colocadas_izquierda = []
+        y_offset = 0  # Para apilar las habitaciones verticalmente
+
+        for habitacion in combinacion:
+            # Ajustar los vértices para la columna izquierda
+            vertices_desplazados = [(-2.440 + x, y + y_offset) for x, y in habitacion.vertices]
+            habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
+            y_offset += habitacion.largo  # Incrementar el desplazamiento vertical
+
+        # Verificar que no exceda el alto de la casa
+        if y_offset > ancho_casa:
+            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
+            continue
+        
+        # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio
+        nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio
+        
+        # Guardar el nuevo plano
+        planos_guardados.append(nuevo_plano)
+        numero_plano += 1
+
+    # Seleccionar 3 planos al azar de los planos guardados
+    planos_a_plotear = random.sample(planos_guardados, min(3, len(planos_guardados)))
+
+    # Plotear los 3 planos seleccionados
+    for i, plano in enumerate(planos_a_plotear):
+        guardar_y_plotear_habitaciones(plano, largo_casa, ancho_casa, i + 1, planos_guardados)
+
+#-------------------------V5------------------
+elif largo_casa == 2.440*4 and ancho_casa == 2.440*6:
+
+    # Dimensiones de la casa
+    largo_casa = 2.440 * 2
+    ancho_casa = 2.440 * 6
+
+    # Clase para definir habitaciones
+    class Habitacion:
+        def __init__(self, nombre, vertices):
+            self.nombre = nombre
+            self.vertices = vertices
+            self.ancho = max(x for x, y in vertices) - min(x for x, y in vertices)
+            self.largo = max(y for x, y in vertices) - min(y for x, y in vertices)
+
+    # Función para actualizar espacios
+    def actualizar_espacios(espacios, habitacion, x_offset, y_offset):
+        nuevos_espacios = []
+        for x, y, ancho, alto in espacios:
+            if not (x_offset + habitacion.ancho <= x or  # A la izquierda del espacio
+                    x_offset >= x + ancho or           # A la derecha del espacio
+                    y_offset + habitacion.largo <= y or  # Debajo del espacio
+                    y_offset >= y + alto):               # Encima del espacio
+                if x_offset > x:  # Espacio a la izquierda
+                    nuevos_espacios.append((x, y, x_offset - x, alto))
+                if x_offset + habitacion.ancho < x + ancho:  # Espacio a la derecha
+                    nuevos_espacios.append((x_offset + habitacion.ancho, y, (x + ancho) - (x_offset + habitacion.ancho), alto))
+                if y_offset > y:  # Espacio abajo
+                    nuevos_espacios.append((x, y, ancho, y_offset - y))
+                if y_offset + habitacion.largo < y + alto:  # Espacio arriba
+                    nuevos_espacios.append((x, y_offset + habitacion.largo, ancho, (y + alto) - (y_offset + habitacion.largo)))
+            else:
+                nuevos_espacios.append((x, y, ancho, alto))  # Sin cambios
+        return nuevos_espacios
+
+    # Función para colocar habitaciones
+    def colocar_habitaciones(habitaciones, largo_casa, ancho_casa, espacios):
+        colocadas = []
+        for habitacion in habitaciones:
+            for x, y, ancho, alto in espacios:
+                if habitacion.ancho <= ancho and habitacion.largo <= alto:
+                    vertices_ajustados = [(x + vx, y + vy) for vx, vy in habitacion.vertices]
+                    colocadas.append(Habitacion(habitacion.nombre, vertices_ajustados))
+                    espacios = actualizar_espacios(espacios, habitacion, x, y)
+                    break
+        return colocadas, espacios
+
+    # Función para plotear habitaciones
+    def plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano):
+        fig, ax = plt.subplots()
+        patches = []
+        for habitacion in habitaciones:
+            polygon = Polygon(habitacion.vertices, closed=True)
+            patches.append(polygon)
+            x_coords = [v[0] for v in habitacion.vertices]
+            y_coords = [v[1] for v in habitacion.vertices]
+            ax.text(
+                sum(x_coords) / len(x_coords),
+                sum(y_coords) / len(y_coords),
+                habitacion.nombre, color="black", ha="center", va="center"
+            )
+        p = PatchCollection(patches, alpha=0.5, edgecolor="black")
+        ax.add_collection(p)
+        ax.set_xlim(-largo_casa, largo_casa )  # Ajustado para doble ancho (izquierda + derecha)
+        ax.set_ylim(0, ancho_casa)
+        ax.set_aspect("equal")
+        plt.title(f"Plano {numero_plano}")
+        st.pyplot(fig)
+
+    # Habitaciones opcionales y finales
+    habitaciones_opcionales_sin_P8_P11 = [
+        Habitacion("P6", [(0, 0), (2.295, 0), (2.295, 2.433), (0, 2.433)]),
+        Habitacion("P7", [(0, 0), (2.585, 0), (2.585, 3.921), (0, 3.921)]),
+        Habitacion("P9", [(0, 0), (2.295, 0), (2.295, 4.779), (0, 4.779)]),
+        Habitacion("P10", [(0, 0), (2.585, 0), (2.585, 4.880), (0, 4.880)])
+    ]
+    habitaciones_finales = [
+        Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.488), (0, 1.488)]),
+        Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
+        Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.480), (0, 1.480)]),
+    ]
+
+    # Colocar habitaciones fijas
+    habitaciones_fijas = [
+        Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
+        Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
+        Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
+        Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)])
+    ]
+
+    espacios_restantes = [(0, 0, largo_casa, ancho_casa)]
+    habitaciones_colocadas_fijas, espacios_actualizados = colocar_habitaciones(
+        habitaciones_fijas, largo_casa, ancho_casa, espacios_restantes[:]
+    )
+
+    # Generar combinaciones para las habitaciones opcionales sin P8 y P11
+    combinaciones_sin_P8_P11 = permutations(habitaciones_opcionales_sin_P8_P11)
+
+    # Función para verificar si un plano cumple con las dimensiones de la casa
+    def verificar_dimensiones(habitaciones, largo_casa, ancho_casa, tolerancia=1e-3):
+        max_x = max(max(v[0] for v in habitacion.vertices) for habitacion in habitaciones)
+        max_y = max(max(v[1] for v in habitacion.vertices) for habitacion in habitaciones)
+        return abs(max_x - largo_casa) <= tolerancia and abs(max_y - ancho_casa) <= tolerancia
+
+    # Función para normalizar el plano (ordenar habitaciones y vértices)
+    def normalizar_plano(habitaciones, decimales=3):
+        return tuple(
+            tuple(sorted((round(v[0], decimales), round(v[1], decimales)) for v in habitacion.vertices))
+            for habitacion in sorted(habitaciones, key=lambda h: (min(v[0] for v in h.vertices), min(v[1] for v in h.vertices)))
+        )
+
+    # Probar todas las combinaciones y agregar P8 o P11 al final
+    planos_unicos = set()  # Conjunto para almacenar disposiciones únicas
+    planos_guardados = []
+    numero_plano = 1
+    contador_combinaciones = 0
+
+    for combinacion in combinaciones_sin_P8_P11:  # Primer ciclo: todas las combinaciones de habitaciones opcionales
+        for final in habitaciones_finales:  # Segundo ciclo: agrega P8 o P11 a cada combinación
+            contador_combinaciones += 1
+            combinacion_completa = list(combinacion) + [final]
+            habitaciones_colocadas_opcionales, _ = colocar_habitaciones(
+                combinacion_completa, largo_casa, ancho_casa, espacios_actualizados[:]
+            )
+            plano = habitaciones_colocadas_fijas + habitaciones_colocadas_opcionales
+            plano_tupla = tuple((h.nombre, tuple(h.vertices)) for h in plano)
+            if plano_tupla not in planos_unicos:
+                planos_unicos.add(plano_tupla)
+                planos_guardados.append(plano)
+            # Normalizar el plano para verificar unicidad
+            plano_normalizado = normalizar_plano(plano)
+            
+            # Verificar dimensiones y unicidad antes de agregar al conjunto único y plotear
+            if plano_normalizado not in planos_unicos and verificar_dimensiones(plano, largo_casa, ancho_casa):
+                planos_unicos.add(plano_normalizado)  # Agregar disposición única al conjunto
+                numero_plano += 1
+
+
+    planos_generados = planos_guardados
+
+    largo_casa=2.440*3
+    ancho_casa=2.440*6
+
+        # Función para guardar y plotear habitaciones
+    def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano, planos_guardados):
+        # Guardar el plano actual
+        planos_guardados.append(habitaciones)
+
+    
+
+    # Habitaciones a la izquierda
+    habitaciones_izquierda = [
+        Habitacion("P14", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
+        Habitacion("P15", [(0, 0), (2.440, 0), (2.440, 4.007), (0, 4.007)]),
+        Habitacion("P16", [(0, 0), (2.440, 0), (2.440, 4.194), (0, 4.194)]),
+        Habitacion("P17", [(0, 0), (2.440, 0), (2.440, 2.228), (0, 2.228)])
+    ]
+
+    # Seleccionar un plano al azar
+    plano_aleatorio = random.choice(planos_generados)
+
+    # Lista para guardar todos los planos generados
+    planos_guardados = []
+
+    # Generar combinaciones para las habitaciones a la izquierda
+    combinaciones_izquierda = permutations(habitaciones_izquierda)
+
+    # Probar todas las combinaciones de habitaciones a la izquierda
+    numero_plano = 1
+    for combinacion in combinaciones_izquierda:
+        # Ajustar la colocación en una sola columna
+        espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
+        habitaciones_colocadas_izquierda = []
+        y_offset = 0  # Para apilar las habitaciones verticalmente
+
+        for habitacion in combinacion:
+            # Ajustar los vértices para la columna izquierda
+            vertices_desplazados = [(-2.440 + x, y + y_offset) for x, y in habitacion.vertices]
+            habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
+            y_offset += habitacion.largo  # Incrementar el desplazamiento vertical
+
+        # Verificar que no exceda el alto de la casa
+        if y_offset > ancho_casa:
+            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
+            continue
+        
+        # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio
+        nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio
+        
+        # Guardar y plotear el nuevo plano
+        guardar_y_plotear_habitaciones(nuevo_plano, largo_casa, ancho_casa, numero_plano, planos_guardados)
+        numero_plano += 1
+
+        # Habitaciones a la izquierda (nuevas)
+    habitaciones_izquierda_2 = [
+        Habitacion("P18", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
+        Habitacion("P19", [(0, 0), (2.440, 0), (2.440, 1.428), (0, 1.428)]),
+        Habitacion("P20", [(0, 0), (2.440, 0), (2.440, 9.001), (0, 9.001)]),
+    ]
+
+    # Seleccionar un plano generado al azar
+    plano_aleatorio_derecha = random.choice(planos_guardados)
+
+    # Generar combinaciones para las habitaciones a la izquierda
+    combinaciones_izquierda_2 = permutations(habitaciones_izquierda_2)
+
+    nuevos_planos=[]
+    # Probar todas las combinaciones de habitaciones a la izquierda con el plano seleccionado a la derecha
+    numero_plano = 1
+    for combinacion in combinaciones_izquierda_2:
+        # Ajustar la colocación en una sola columna
+        espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
+        habitaciones_colocadas_izquierda = []
+        y_offset = 0  # Para apilar las habitaciones verticalmente
+
+        for habitacion in combinacion:  # Iteramos directamente sobre los objetos Habitacion
+            # Ajustar los vértices para la columna izquierda
+            vertices_desplazados = [(-2.440*2 + x, y + y_offset) for x, y in habitacion.vertices]
+            habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
+            y_offset += habitacion.largo  # Incrementar el desplazamiento vertical basado en la altura de la habitación
+
+        #Verificar que no exceda el alto de la casa
+        if y_offset > ancho_casa:
+            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
+            continue
+        
+        #Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio a la derecha
+        nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio_derecha
+        nuevos_planos.append(nuevo_plano)
+        numero_plano += 1
+
+    # Seleccionar 3 planos al azar de los nuevos planos generados
+    planos_a_plotear = random.sample(nuevos_planos, min(3, len(nuevos_planos)))
+
+    # Plotear los 3 planos seleccionados
+    for i, plano in enumerate(planos_a_plotear):
+        plotear_habitaciones(plano, largo_casa, ancho_casa, i + 1)
+
+
+
