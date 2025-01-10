@@ -151,10 +151,10 @@ if largo_casa == 2.440*2 and ancho_casa == 2.440*3:
     
     # Mostrar los planos seleccionados
 
-    cols = st.columns(2)  # 2 gráficos por fila
+    cols = st.columns(3)  # 2 gráficos por fila
 
     for i, casa in enumerate(planos_aleatorios):
-        with cols[i % 2]:  # Alternar entre las columnas
+        with cols[i % 3]:  # Alternar entre las columnas
             st.write(f"Plano {i + 1}")
             casa.visualizar_plano()
 #-----------------------------------------------------v2---------------------------------------------------
