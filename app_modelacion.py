@@ -5,7 +5,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 
 # Título de la aplicación
-st.title("Generador de Planos para Habitaciones")
+st.title("Generador de Planos para Casas")
 
 # Opciones predefinidas para las dimensiones de la casa
 opciones = {
