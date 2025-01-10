@@ -26,7 +26,7 @@ opcion_seleccionada = st.selectbox(
 largo_casa, ancho_casa = opciones[opcion_seleccionada]
 
 
-st.write(f"Area del plano {largo_casa * ancho_casa} M^2")
+#st.write(f"Area del plano {largo_casa * ancho_casa} M^2")
 
 # Clase para definir habitaciones
 class Habitacion:
