@@ -10,11 +10,11 @@ st.title("Generador de Planos para Casas")
 
 # Opciones predefinidas para las dimensiones de la casa
 opciones = {
-    "Ancho 2440*2, Largo 2440*3": (2440 * 2, 2440 * 3),
-    "Ancho 2440*2, Largo 2440*4": (2440 * 2, 2440 * 4),
-    "Ancho 2440*2, Largo 2440*6": (2440 * 2, 2440 * 6),
-    "Ancho 2440*3, Largo 2440*6": (2440 * 3, 2440 * 6),
-    "Ancho 2440*4, Largo 2440*6": (2440 * 4, 2440 * 6),
+    "Ancho 2440*2, Largo 2440*3": (2.440 * 2, 2.440 * 3),
+    "Ancho 2440*2, Largo 2440*4": (2.440 * 2, 2.440 * 4),
+    "Ancho 2440*2, Largo 2440*6": (2.440 * 2, 2.440 * 6),
+    "Ancho 2440*3, Largo 2440*6": (2.440 * 3, 2.440 * 6),
+    "Ancho 2440*4, Largo 2440*6": (2.440 * 4, 2.440 * 6),
 }
 
 # Input para seleccionar la opción
