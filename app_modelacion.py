@@ -259,106 +259,108 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
         Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)])]
     
     
-        # Generar combinaciones válidas con una sola habitación final por plano
-        def generar_combinaciones(habitaciones):
-            combinaciones_validas = []
-            for habitacion_final in habitaciones_finales:
-                # Generar permutaciones de la lista de habitaciones
-                for permutacion in permutations(habitaciones):
-                    casa = Casa(largo=largo_casa, ancho=ancho_casa)
-                    
-                    # Colocar las habitaciones estándar primero
-                    es_valido = True
-                    for habitacion in permutacion:
-                        if not casa.agregar_habitacion(habitacion):
-                            es_valido = False
-                            break
-                    
-                    # Colocar la habitación inferior al final si es válida
-                    if es_valido and casa.es_valida() and casa.agregar_habitacion_inferior(habitacion_final):
-                        # Verificar que el plano cumple con los requisitos exactos de ancho y alto
-                        if casa.cumple_dimensiones_exactas():
-                            combinaciones_validas.append(casa)
-            return combinaciones_validas
-    
-    
-        # Generar todas las combinaciones válidas
-        combinaciones = generar_combinaciones(habitaciones_v1)
-    
-        # Crear una nueva lista que excluya la habitación "P5" de cada combinación existente
-        combinaciones_sin_p5 = []
-    
-        for casa in combinaciones:
-            # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
-            nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
-            
-            # Agregar todas las habitaciones excepto la que corresponde a "P5"
-            for habitacion in casa.habitaciones:
-                if habitacion.nombre != "P5":
-                    nueva_casa.habitaciones.append(habitacion)
-            
-            # Copiar el área usada y otras variables necesarias
-            nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
-            nueva_casa.posicion_x = casa.posicion_x
-            nueva_casa.posicion_y = casa.posicion_y
-            nueva_casa.altura_fila_actual = casa.altura_fila_actual
-    
-            # Añadir la nueva casa a la lista
-            combinaciones_sin_p5.append(nueva_casa)
-    
-        for i in range(3): #Da 3 combinaciones
-            class Habitacion:
-                def __init__(self, nombre, vertices):
-                    self.nombre = nombre
-                    self.vertices = vertices
-    
-                def area(self):
-                    x, y = zip(*self.vertices)
-                    return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
-    
-            class Casa:
-                def __init__(self, largo, ancho):
-                    self.largo = largo
-                    self.ancho = ancho
-                    self.habitaciones = []
-    
-                def agregar_habitacion(self, habitacion):
-                    self.habitaciones.append(habitacion)
-    
-                def visualizar_plano(self):
-                    fig, ax = plt.subplots()
-                    for hab in self.habitaciones:
-                        poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
-                        ax.add_patch(poligono)
-                        cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
-                        cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
-                        ax.text(cx, cy, hab.nombre, ha='center', va='center')
-    
-                    ax.set_xlim(0, self.largo)
-                    ax.set_ylim(0, self.ancho)
-                    plt.gca().set_aspect('equal', adjustable='box')
-                    plt.show()
-    
-            # Dimensiones de la casa
-            largo_casa = 2*2.440
-            ancho_casa = 4*2.440 #9.759
-    
-            # Crear las dos combinaciones de planos
-            # Plano 1: P8 en esquina superior derecha, P7 y P6 en la primera configuración
-            casa1 = Casa(largo_casa, ancho_casa)
-            casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)])),
-            casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
-            casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
-    
-            # Plano 2: P8 en esquina superior izquierda, P7 y P6 en la segunda configuración
-            casa2 = Casa(largo_casa, ancho_casa)
-            casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
-            casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
-            casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
-    
-            # Visualizar los dos planos
-            casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
-            casa1.visualizar_plano()
-    
-            casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
-            casa2.visualizar_plano()
+    # Generar combinaciones válidas con una sola habitación final por plano
+    def generar_combinaciones(habitaciones):
+        combinaciones_validas = []
+        for habitacion_final in habitaciones_finales:
+            # Generar permutaciones de la lista de habitaciones
+            for permutacion in permutations(habitaciones):
+                casa = Casa(largo=largo_casa, ancho=ancho_casa)
+                
+                # Colocar las habitaciones estándar primero
+                es_valido = True
+                for habitacion in permutacion:
+                    if not casa.agregar_habitacion(habitacion):
+                        es_valido = False
+                        break
+                
+                # Colocar la habitación inferior al final si es válida
+                if es_valido and casa.es_valida() and casa.agregar_habitacion_inferior(habitacion_final):
+                    # Verificar que el plano cumple con los requisitos exactos de ancho y alto
+                    if casa.cumple_dimensiones_exactas():
+                        combinaciones_validas.append(casa)
+        return combinaciones_validas
+
+
+    # Generar todas las combinaciones válidas
+    combinaciones = generar_combinaciones(habitaciones_v1)
+
+    # Crear una nueva lista que excluya la habitación "P5" de cada combinación existente
+    combinaciones_sin_p5 = []
+
+    for casa in combinaciones:
+        # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
+        nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
+        
+        # Agregar todas las habitaciones excepto la que corresponde a "P5"
+        for habitacion in casa.habitaciones:
+            if habitacion.nombre != "P5":
+                nueva_casa.habitaciones.append(habitacion)
+        
+        # Copiar el área usada y otras variables necesarias
+        nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+        nueva_casa.posicion_x = casa.posicion_x
+        nueva_casa.posicion_y = casa.posicion_y
+        nueva_casa.altura_fila_actual = casa.altura_fila_actual
+
+        # Añadir la nueva casa a la lista
+        combinaciones_sin_p5.append(nueva_casa)
+
+    for i in range(3): #Da 3 combinaciones
+        class Habitacion:
+            def __init__(self, nombre, vertices):
+                self.nombre = nombre
+                self.vertices = vertices
+
+            def area(self):
+                x, y = zip(*self.vertices)
+                return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
+
+        class Casa:
+            def __init__(self, largo, ancho):
+                self.largo = largo
+                self.ancho = ancho
+                self.habitaciones = []
+
+            def agregar_habitacion(self, habitacion):
+                self.habitaciones.append(habitacion)
+
+            def visualizar_plano(self):
+                fig, ax = plt.subplots()
+                for hab in self.habitaciones:
+                    poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+                    ax.add_patch(poligono)
+                    cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
+                    cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
+                    ax.text(cx, cy, hab.nombre, ha='center', va='center')
+
+                ax.set_xlim(0, self.largo)
+                ax.set_ylim(0, self.ancho)
+                plt.gca().set_aspect('equal', adjustable='box')
+                plt.show()
+
+        # Dimensiones de la casa
+        largo_casa = 2*2.440
+        ancho_casa = 4*2.440 #9.759
+
+        # Crear las dos combinaciones de planos
+        # Plano 1: P8 en esquina superior derecha, P7 y P6 en la primera configuración
+        casa1 = Casa(largo_casa, ancho_casa)
+        casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)])),
+        casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+        casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+
+        # Plano 2: P8 en esquina superior izquierda, P7 y P6 en la segunda configuración
+        casa2 = Casa(largo_casa, ancho_casa)
+        casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+        casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+        casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+
+        # Visualizar los dos planos
+        casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        casa1.visualizar_plano()
+
+        casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        casa2.visualizar_plano()
+
+        
