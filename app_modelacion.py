@@ -362,10 +362,10 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
 
         # Visualizar los dos planos
         casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
-        casa1.visualizar_plano()
+        #casa1.visualizar_plano()
 
         casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
-        casa2.visualizar_plano()
+        #casa2.visualizar_plano()
 
            # Lista de planos
         planos = [casa1, casa2]
