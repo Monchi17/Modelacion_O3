@@ -372,7 +372,7 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
 
         for j, plano in enumerate(planos):
             with cols[j % 3]:  # Alternar entre las columnas
-                st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
+                #st.write(f"Plano {i * 2 + j + 1}")  # Título del plano
                 fig = plano.visualizar_plano()  # Generar la figura
                 st.pyplot(fig)  # Mostrar la figura en Streamlit
 
