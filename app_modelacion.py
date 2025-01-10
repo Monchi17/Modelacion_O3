@@ -310,7 +310,7 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*4:
         # Añadir la nueva casa a la lista
         combinaciones_sin_p5.append(nueva_casa)
     cols = st.columns(3)
-    for i in range(3): #Da 3 combinaciones
+    for i in range(2): #Da 3 combinaciones
         class Habitacion:
             def __init__(self, nombre, vertices):
                 self.nombre = nombre
