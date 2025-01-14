@@ -981,49 +981,52 @@ elif largo_casa == 2.440*4 and ancho_casa == 2.440*6:
         numero_plano += 1
 
         # Habitaciones a la izquierda (nuevas)
+    #
+    # Habitaciones a la izquierda (nuevas)
     habitaciones_izquierda_2 = [
         Habitacion("P18", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
         Habitacion("P19", [(0, 0), (2.440, 0), (2.440, 1.428), (0, 1.428)]),
         Habitacion("P20", [(0, 0), (2.440, 0), (2.440, 9.001), (0, 9.001)]),
     ]
-
+    
     # Seleccionar un plano generado al azar
     plano_aleatorio_derecha = random.choice(planos_guardados)
-
+    
     # Generar combinaciones para las habitaciones a la izquierda
-    combinaciones_izquierda_2 = permutations(habitaciones_izquierda_2)
-
-    nuevos_planos=[]
-    # Probar todas las combinaciones de habitaciones a la izquierda con el plano seleccionado a la derecha
+    combinaciones_izquierda_2 = list(permutations(habitaciones_izquierda_2))  # Convertimos a lista para seleccionar al azar
+    
+    # Seleccionar tres combinaciones al azar
+    combinaciones_seleccionadas = random.sample(combinaciones_izquierda_2, min(3, len(combinaciones_izquierda_2)))
+    
+    # Crear columnas en Streamlit
+    col1, col2, col3 = st.columns(3)
+    columnas = [col1, col2, col3]
+    
+    # Probar solo las combinaciones seleccionadas
     numero_plano = 1
-    for combinacion in combinaciones_izquierda_2:
-        # Ajustar la colocación en una sola columna
-        espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
-        habitaciones_colocadas_izquierda = []
-        y_offset = 0  # Para apilar las habitaciones verticalmente
-
-        for habitacion in combinacion:  # Iteramos directamente sobre los objetos Habitacion
-            # Ajustar los vértices para la columna izquierda
-            vertices_desplazados = [(-2.440*2 + x, y + y_offset) for x, y in habitacion.vertices]
-            habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
-            y_offset += habitacion.largo  # Incrementar el desplazamiento vertical basado en la altura de la habitación
-
-        #Verificar que no exceda el alto de la casa
-        if y_offset > ancho_casa:
-            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
-            continue
-        
-        #Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio a la derecha
-        nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio_derecha
-        nuevos_planos.append(nuevo_plano)
-        numero_plano += 1
-
-    # Seleccionar 3 planos al azar de los nuevos planos generados
-    planos_a_plotear = random.sample(nuevos_planos, min(3, len(nuevos_planos)))
-
-    # Plotear los 3 planos seleccionados
-    for i, plano in enumerate(planos_a_plotear):
-        plotear_habitaciones(plano, largo_casa, ancho_casa, i + 1)
-
-
+    for idx, combinacion in enumerate(combinaciones_seleccionadas):
+        with columnas[idx % 3]:
+            # Ajustar la colocación en una sola columna
+            espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
+            habitaciones_colocadas_izquierda = []
+            y_offset = 0  # Para apilar las habitaciones verticalmente
+    
+            for habitacion in combinacion:  # Iteramos directamente sobre los objetos Habitacion
+                # Ajustar los vértices para la columna izquierda
+                vertices_desplazados = [(-2.440 * 2 + x, y + y_offset) for x, y in habitacion.vertices]
+                habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
+                y_offset += habitacion.largo  # Incrementar el desplazamiento vertical basado en la altura de la habitación
+    
+            # Verificar que no exceda el alto de la casa
+            if y_offset > ancho_casa:
+                st.write(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
+                continue
+    
+            # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio a la derecha
+            nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio_derecha
+    
+            # Plotear el nuevo plano
+            plotear_habitaciones(nuevo_plano, largo_casa, ancho_casa, numero_plano)
+            numero_plano += 1
+    
 
