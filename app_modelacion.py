@@ -5,6 +5,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import random
 
+
 # Título de la aplicación
 st.title("Generador de Planos para Casas")
 
@@ -701,15 +702,9 @@ elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
 
     largo_casa=2.440*3
     ancho_casa=2.440*6
-    
-        # Función para guardar y plotear habitaciones
- 
-
-        # Función para guardar y plotear habitaciones
-    def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano, planos_guardados):
-        # Guardar el plano actual
-        planos_guardados.append(habitaciones)
-    
+    # Función para guardar y plotear habitaciones
+    # Función para guardar y plotear habitaciones
+    def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano):
         # Crear el gráfico del plano
         fig, ax = plt.subplots()
         patches = []
@@ -723,13 +718,17 @@ elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
                 sum(y_coords) / len(y_coords),
                 habitacion.nombre, color="black", ha="center", va="center"
             )
-        p = PatchCollection(patches, alpha=0.5, edgecolor="black") 
+        p = PatchCollection(patches, alpha=0.5, edgecolor="black")
         ax.add_collection(p)
         ax.set_xlim(-largo_casa, largo_casa)  # Ajustado para doble ancho (izquierda + derecha)
         ax.set_ylim(0, ancho_casa)
         ax.set_aspect("equal")
         plt.title(f"Plano {numero_plano}")
-        plt.show()
+        return fig
+    
+    # Dimensiones de la casa
+    largo_casa = 2.440 * 3
+    ancho_casa = 2.440 * 6
     
     # Habitaciones a la izquierda
     habitaciones_izquierda = [
@@ -739,7 +738,7 @@ elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
         Habitacion("P17", [(0, 0), (2.440, 0), (2.440, 2.228), (0, 2.228)])
     ]
     
-    # Seleccionar un plano al azar
+    # Seleccionar un plano al azar (simulado aquí con un ejemplo)
     plano_aleatorio = random.choice(planos_generados)
     
     # Lista para guardar todos los planos generados
@@ -764,25 +763,28 @@ elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
     
         # Verificar que no exceda el alto de la casa
         if y_offset > ancho_casa:
-            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
             continue
-        
+    
         # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio
         nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio
-        
+    
         # Guardar el nuevo plano
         planos_guardados.append(nuevo_plano)
         numero_plano += 1
     
-    # Mostrar el total de planos generados
-    #print(f"Total de planos generados: {len(planos_guardados)}")
-    
     # Seleccionar y plotear 3 planos guardados al azar
     planos_seleccionados = random.sample(planos_guardados, min(3, len(planos_guardados)))  # Selecciona hasta 3 planos si hay suficientes
     
-    for i, plano in enumerate(planos_seleccionados, start=1):
-        #print(f"Plano seleccionado al azar {i}: {[h.nombre for h in plano]}")
-        guardar_y_plotear_habitaciones(plano, largo_casa, ancho_casa, f"Seleccionado {i}", planos_guardados)
+    # Usar Streamlit para mostrar los planos
+    st.title("Planos Seleccionados")
+    
+    cols = st.columns(3)  # Crear tres columnas
+    for i, plano in enumerate(planos_seleccionados):
+        with cols[i]:
+            st.write(f"Plano {i + 1}")
+            fig = guardar_y_plotear_habitaciones(plano, largo_casa, ancho_casa, f"Seleccionado {i + 1}")
+            st.pyplot(fig)
+
 
 
 #-------------------------V5------------------
