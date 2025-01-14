@@ -701,81 +701,89 @@ elif largo_casa == 2.440*3 and ancho_casa == 2.440*6:
 
     largo_casa=2.440*3
     ancho_casa=2.440*6
+    
         # Función para guardar y plotear habitaciones
-    def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano, planos_guardados):
-        # Guardar el plano actual
-        planos_guardados.append(habitaciones)
+ 
 
-        # Crear el gráfico del plano
-        fig, ax = plt.subplots()
-        patches = []
-        for habitacion in habitaciones:
-            polygon = Polygon(habitacion.vertices, closed=True)
-            patches.append(polygon)
-            x_coords = [v[0] for v in habitacion.vertices]
-            y_coords = [v[1] for v in habitacion.vertices]
-            ax.text(
-                sum(x_coords) / len(x_coords),
-                sum(y_coords) / len(y_coords),
-                habitacion.nombre, color="black", ha="center", va="center"
-            )
-        p = PatchCollection(patches, alpha=0.5, edgecolor="black") 
-        ax.add_collection(p)
-        ax.set_xlim(-largo_casa, largo_casa)  # Ajustado para doble ancho (izquierda + derecha)
-        ax.set_ylim(0, ancho_casa)
-        ax.set_aspect("equal")
-        plt.title(f"Plano {numero_plano}")
-        st.pyplot(fig)
-
-    # Habitaciones a la izquierda
-    habitaciones_izquierda = [
-        Habitacion("P14", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
-        Habitacion("P15", [(0, 0), (2.440, 0), (2.440, 4.007), (0, 4.007)]),
-        Habitacion("P16", [(0, 0), (2.440, 0), (2.440, 4.194), (0, 4.194)]),
-        Habitacion("P17", [(0, 0), (2.440, 0), (2.440, 2.228), (0, 2.228)])
-    ]
-
-    # Seleccionar un plano al azar
-    plano_aleatorio = random.choice(planos_generados)
-
-    # Lista para guardar todos los planos generados
-    planos_guardados = []
-
-    # Generar combinaciones para las habitaciones a la izquierda
-    combinaciones_izquierda = permutations(habitaciones_izquierda)
-
-    # Probar todas las combinaciones de habitaciones a la izquierda
-    numero_plano = 1
-    for combinacion in combinaciones_izquierda:
-        # Ajustar la colocación en una sola columna
-        espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
-        habitaciones_colocadas_izquierda = []
-        y_offset = 0  # Para apilar las habitaciones verticalmente
-
-        for habitacion in combinacion:
-            # Ajustar los vértices para la columna izquierda
-            vertices_desplazados = [(-2.440 + x, y + y_offset) for x, y in habitacion.vertices]
-            habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
-            y_offset += habitacion.largo  # Incrementar el desplazamiento vertical
-
-        # Verificar que no exceda el alto de la casa
-        if y_offset > ancho_casa:
-            print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
-            continue
+        # Función para guardar y plotear habitaciones
+        def guardar_y_plotear_habitaciones(habitaciones, largo_casa, ancho_casa, numero_plano, planos_guardados):
+            # Guardar el plano actual
+            planos_guardados.append(habitaciones)
         
-        # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio
-        nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio
+            # Crear el gráfico del plano
+            fig, ax = plt.subplots()
+            patches = []
+            for habitacion in habitaciones:
+                polygon = Polygon(habitacion.vertices, closed=True)
+                patches.append(polygon)
+                x_coords = [v[0] for v in habitacion.vertices]
+                y_coords = [v[1] for v in habitacion.vertices]
+                ax.text(
+                    sum(x_coords) / len(x_coords),
+                    sum(y_coords) / len(y_coords),
+                    habitacion.nombre, color="black", ha="center", va="center"
+                )
+            p = PatchCollection(patches, alpha=0.5, edgecolor="black") 
+            ax.add_collection(p)
+            ax.set_xlim(-largo_casa, largo_casa)  # Ajustado para doble ancho (izquierda + derecha)
+            ax.set_ylim(0, ancho_casa)
+            ax.set_aspect("equal")
+            plt.title(f"Plano {numero_plano}")
+            plt.show()
         
-        # Guardar el nuevo plano
-        planos_guardados.append(nuevo_plano)
-        numero_plano += 1
+        # Habitaciones a la izquierda
+        habitaciones_izquierda = [
+            Habitacion("P14", [(0, 0), (2.440, 0), (2.440, 4.211), (0, 4.211)]),
+            Habitacion("P15", [(0, 0), (2.440, 0), (2.440, 4.007), (0, 4.007)]),
+            Habitacion("P16", [(0, 0), (2.440, 0), (2.440, 4.194), (0, 4.194)]),
+            Habitacion("P17", [(0, 0), (2.440, 0), (2.440, 2.228), (0, 2.228)])
+        ]
+        
+        # Seleccionar un plano al azar
+        plano_aleatorio = random.choice(planos_generados)
+        
+        # Lista para guardar todos los planos generados
+        planos_guardados = []
+        
+        # Generar combinaciones para las habitaciones a la izquierda
+        combinaciones_izquierda = permutations(habitaciones_izquierda)
+        
+        # Probar todas las combinaciones de habitaciones a la izquierda
+        numero_plano = 1
+        for combinacion in combinaciones_izquierda:
+            # Ajustar la colocación en una sola columna
+            espacios_restantes_izquierda = [(-2.440, 0, 2.440, ancho_casa)]  # Solo una columna de ancho 2.440
+            habitaciones_colocadas_izquierda = []
+            y_offset = 0  # Para apilar las habitaciones verticalmente
+        
+            for habitacion in combinacion:
+                # Ajustar los vértices para la columna izquierda
+                vertices_desplazados = [(-2.440 + x, y + y_offset) for x, y in habitacion.vertices]
+                habitaciones_colocadas_izquierda.append(Habitacion(habitacion.nombre, vertices_desplazados))
+                y_offset += habitacion.largo  # Incrementar el desplazamiento vertical
+        
+            # Verificar que no exceda el alto de la casa
+            if y_offset > ancho_casa:
+                print(f"Combinación {numero_plano} excede el alto de la casa. Se omite.")
+                continue
+            
+            # Crear el nuevo plano combinando las habitaciones a la izquierda y el plano aleatorio
+            nuevo_plano = habitaciones_colocadas_izquierda + plano_aleatorio
+            
+            # Guardar el nuevo plano
+            planos_guardados.append(nuevo_plano)
+            numero_plano += 1
+        
+        # Mostrar el total de planos generados
+        #print(f"Total de planos generados: {len(planos_guardados)}")
+        
+        # Seleccionar y plotear 3 planos guardados al azar
+        planos_seleccionados = random.sample(planos_guardados, min(3, len(planos_guardados)))  # Selecciona hasta 3 planos si hay suficientes
+        
+        for i, plano in enumerate(planos_seleccionados, start=1):
+            #print(f"Plano seleccionado al azar {i}: {[h.nombre for h in plano]}")
+            guardar_y_plotear_habitaciones(plano, largo_casa, ancho_casa, f"Seleccionado {i}", planos_guardados)
 
-    # Seleccionar 3 planos al azar de los planos guardados
-    planos_a_plotear = random.sample(planos_guardados, min(3, len(planos_guardados)))
-
-    # Plotear los 3 planos seleccionados
-    for i, plano in enumerate(planos_a_plotear):
-        guardar_y_plotear_habitaciones(plano, largo_casa, ancho_casa, i + 1, planos_guardados)
 
 #-------------------------V5------------------
 elif largo_casa == 2.440*4 and ancho_casa == 2.440*6:
