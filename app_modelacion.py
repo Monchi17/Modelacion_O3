@@ -503,9 +503,8 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*6:
     # Probar todas las combinaciones y agregar P8 o P11 al final
     planos_unicos = set()  # Conjunto para almacenar disposiciones únicas
     planos_guardados = []
-    numero_plano = 1
     contador_combinaciones = 0
-
+    
     for combinacion in combinaciones_sin_P8_P11:  # Primer ciclo: todas las combinaciones de habitaciones opcionales
         for final in habitaciones_finales:  # Segundo ciclo: agrega P8 o P11 a cada combinación
             contador_combinaciones += 1
@@ -514,22 +513,51 @@ elif largo_casa == 2.440*2 and ancho_casa == 2.440*6:
                 combinacion_completa, largo_casa, ancho_casa, espacios_actualizados[:]
             )
             plano = habitaciones_colocadas_fijas + habitaciones_colocadas_opcionales
+    
+            # Filtrar planos con exactamente 9 habitaciones
+            if len(plano) != 9:
+                continue
+    
             plano_tupla = tuple((h.nombre, tuple(h.vertices)) for h in plano)
             if plano_tupla not in planos_unicos:
                 planos_unicos.add(plano_tupla)
                 planos_guardados.append(plano)
-            # Normalizar el plano para verificar unicidad
-            plano_normalizado = normalizar_plano(plano)
-            
-            # Verificar dimensiones y unicidad antes de agregar al conjunto único y plotear
-            if plano_normalizado not in planos_unicos and verificar_dimensiones(plano, largo_casa, ancho_casa):
-                planos_unicos.add(plano_normalizado)  # Agregar disposición única al conjunto
-                plotear_habitaciones(plano, largo_casa, ancho_casa, numero_plano)
-                numero_plano += 1
-
-    print(f"Total de combinaciones generadas: {contador_combinaciones}")
-
+    
     planos_generados = planos_guardados
+    
+    # Seleccionar tres planos al azar de los generados
+    if len(planos_guardados) >= 3:
+        planos_seleccionados = random.sample(planos_guardados, 3)
+    else:
+        st.warning("Menos de tres planos generados. Mostrando todos los disponibles.")
+        planos_seleccionados = planos_guardados
+    
+    # Crear tres columnas en Streamlit
+    cols = st.columns(3)
+    
+    # Plotear los tres planos seleccionados
+    for i, plano in enumerate(planos_seleccionados):
+        with cols[i]:  # Alternar entre las columnas
+            st.write(f"Plano {i + 1}")  # Título del plano
+    
+            # Crear la figura y graficar
+            fig, ax = plt.subplots()
+            for habitacion in plano:
+                polygon = Polygon(habitacion.vertices, closed=True, edgecolor='black', alpha=0.5)
+                ax.add_patch(polygon)
+                x_coords = [v[0] for v in habitacion.vertices]
+                y_coords = [v[1] for v in habitacion.vertices]
+                ax.text(
+                    sum(x_coords) / len(x_coords),
+                    sum(y_coords) / len(y_coords),
+                    habitacion.nombre, ha="center", va="center", color="black"
+                )
+            ax.set_xlim(-largo_casa, largo_casa)  # Ajustado para doble ancho (izquierda + derecha)
+            ax.set_ylim(0, ancho_casa)
+            ax.set_aspect("equal")
+            plt.title(f"Plano {i + 1}")
+            st.pyplot(fig)
+
 
 #------------------------V4--------------------------
 
