@@ -218,7 +218,7 @@ def mostrar_v1():
     st.write("### Haz clic en un plano para seleccionarlo:")
     
     # Crear dos filas de planos para mejor visualización
-    row1 = st.columns(4
+    row1 = st.columns(4)
     
     # Primera fila
     for i in range(min(4, len(st.session_state.planos_v1))):
