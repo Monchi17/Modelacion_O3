@@ -3,63 +3,34 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from itertools import permutations
 import random
-import hashlib
 import numpy as np
+from io import BytesIO
 
-# Configura la página
-st.set_page_config(layout="wide", page_title="Modelación O3 - Libre Crecimiento")
-
-# Título y descripción principal
-st.title("Modelación O3 - Libre Crecimiento")
-st.write("Aplicación para el diseño de planos arquitectónicos mediante generación computacional.")
-
-# Sidebar para navegación
-pagina = st.sidebar.radio(
-    "Selecciona la etapa:", 
-    ["V1 - Base", "V2 - Ampliación", "V3 - Optimización", "V4 - Extensión lateral", "V5 - Extensión completa"]
-)
-
-# Inicializar variables en session_state si no existen
+# Inicializar variables de estado si no existen
+if 'etapa' not in st.session_state:
+    st.session_state.etapa = 'V1'
+if 'plano_seleccionado' not in st.session_state:
+    st.session_state.plano_seleccionado = None
 if 'planos_aleatorios' not in st.session_state:
-    st.session_state.planos_aleatorios = []
+    st.session_state.planos_aleatorios = None
 if 'planos_V2' not in st.session_state:
-    st.session_state.planos_V2 = []
-if 'planos_V3_B' not in st.session_state:
-    st.session_state.planos_V3_B = []
-if 'planos_v4' not in st.session_state:
-    st.session_state.planos_v4 = []
-if 'planos_v5' not in st.session_state:
-    st.session_state.planos_v5 = []
+    st.session_state.planos_V2 = None
+if 'combinaciones_sin_p5' not in st.session_state:
+    st.session_state.combinaciones_sin_p5 = None
 
-# Función principal que controla el flujo
-def main():
-    if pagina == "V1 - Base":
-        mostrar_v1()
-    elif pagina == "V2 - Ampliación":
-        mostrar_v2()
-    elif pagina == "V3 - Optimización":
-        mostrar_v3()
-    elif pagina == "V4 - Extensión lateral":
-        mostrar_v4()
-    elif pagina == "V5 - Extensión completa":
-        mostrar_v5()
-
-# Ejecutar la aplicación
-main()
-
-    
+# Dimensiones de la casa
 largo_casa = 2.440 * 2
 ancho_casa = 2.440 * 3
-        
-# Clasificación por rangos de ancho y altura
-CLASIFICACIONES_V1 = [
+
+# Clasificación por rangos de ancho y altura para V1
+CLASIFICACIONES = [
     {"nombre": "Baño", "ancho_min": 0.0, "ancho_max": 1.351, "largo_min": 0.0, "largo_max": 2.983},
     {"nombre": "Dor", "ancho_min": 3.5, "ancho_max": 3.6, "largo_min": 3.9, "largo_max": 4.0},
     {"nombre": "Cocina - Comedor", "ancho_min": 2.5, "ancho_max": 2.6, "largo_min": 2.8, "largo_max": 2.9},
     {"nombre": "Estar", "ancho_min": 2.2, "ancho_max": 2.4, "largo_min": 2.4, "largo_max": 4.0},
     {"nombre": "Recibidor", "ancho_min": 2.2, "ancho_max": 4.9, "largo_min": 1.4, "largo_max": 1.6}]
 
-RESTRICCIONES_ESPACIALES_V1 = {
+RESTRICCIONES_ESPACIALES = {
     ("Baño", "Dor"),
     #("Cocina", "Comedor"),
     ("Estar", "Recibidor"),
@@ -67,8 +38,9 @@ RESTRICCIONES_ESPACIALES_V1 = {
     ("Estar", "Cocina - Comedor"),
     #("Estar", "Estar"),
     #("Comedor", "Comedor")
-    }
+}
 
+# Definición de clases
 class Habitacion:
     def __init__(self, nombre, vertices):
         self.nombre = nombre
@@ -84,7 +56,7 @@ class Habitacion:
 
 
 class Casa:
-    def __init__(self, largo, ancho):
+    def __init__(self, largo, ancho, tipo=""):
         self.largo = largo
         self.ancho = ancho
         self.area_total = largo * ancho
@@ -93,6 +65,7 @@ class Casa:
         self.posicion_x = 0
         self.posicion_y = 0
         self.altura_fila_actual = 0
+        self.tipo = tipo
 
     def agregar_habitacion(self, habitacion):
         if self.area_usada + habitacion.area() <= self.area_total:
@@ -136,61 +109,37 @@ class Casa:
         return (self.area_usada <= self.area_total and 
                 self.posicion_y + self.altura_fila_actual <= self.ancho)
 
-    def visualizar_plano(casa, titulo=""):
-        """
-        Visualiza el plano de una casa mostrando todas sus habitaciones.
-        
-        Args:
-            casa: Objeto Casa que contiene las habitaciones a visualizar
-            titulo: Título opcional para la figura
-            
-        Returns:
-            fig: Objeto figura de matplotlib
-        """
-        fig, ax = plt.subplots(figsize=(10, 8))
+    def visualizar_plano(self):
+        fig, ax = plt.subplots(figsize=(8, 6))
         contador_dormitorios = 1
-        contador_baños = 1
-        
-        for hab in casa.habitaciones:
-            # Crear el polígono que representa la habitación
+
+        for hab in self.habitaciones:
             poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
             ax.add_patch(poligono)
-            
-            # Calcular el centro de la habitación para colocar el texto
             cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
             cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
             nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura)
             
-            # Formatear el texto según el tipo de habitación
             if nombre_funcional == "Dor":
                 texto = f"{hab.nombre}\nDor {contador_dormitorios}"
                 contador_dormitorios += 1
-            elif nombre_funcional == "Baño":
-                texto = f"{hab.nombre}\nBaño {contador_baños}"
-                contador_baños += 1
             else:
                 texto = f"{hab.nombre}\n{nombre_funcional}"
-            
-            # Añadir el texto al plano
+
             ax.text(cx, cy, texto, ha='center', va='center', fontsize=12)
-        
-        # Configurar los ejes y apariencia del plano
-        ax.set_xlim(0, casa.largo)
-        ax.set_ylim(0, casa.ancho)
+            
+        ax.set_xlim(0, self.largo)
+        ax.set_ylim(0, self.ancho)
         ax.set_aspect('equal', adjustable='box')
-        ax.set_title(titulo, fontsize=14)
         
-        return fig
+        # Convertir la figura a una imagen para Streamlit
+        buf = BytesIO()
+        fig.savefig(buf, format="png", bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+        return buf
 
-habitaciones_v1 = [Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
-                   Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
-                   Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
-                   Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]),]
-
-habitaciones_finales = [Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.487), (0, 1.487)]),
-                        Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
-                        Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)])]
-
+# Funciones auxiliares
 def son_adyacentes(hab1, hab2):
     for i in range(len(hab1.vertices)):
         p1 = hab1.vertices[i]
@@ -213,7 +162,7 @@ def son_adyacentes(hab1, hab2):
     return False
 
 def obtener_nombre_funcional_por_rango(ancho, largo):
-    for clasificacion in CLASIFICACIONES_V1:
+    for clasificacion in CLASIFICACIONES:
         if (clasificacion["ancho_min"] <= ancho <= clasificacion["ancho_max"] and
             clasificacion["largo_min"] <= largo <= clasificacion["largo_max"]):
             return clasificacion["nombre"]
@@ -222,7 +171,7 @@ def obtener_nombre_funcional_por_rango(ancho, largo):
 def cumple_restricciones_espaciales(casa):
     tipos_presentes = {obtener_nombre_funcional_por_rango(h.ancho, h.altura) for h in casa.habitaciones}
     
-    for tipo_a, tipo_b in RESTRICCIONES_ESPACIALES_V1:
+    for tipo_a, tipo_b in RESTRICCIONES_ESPACIALES:
         if tipo_a in tipos_presentes and tipo_b in tipos_presentes:
             encontrados_adyacentes = False
             for i in range(len(casa.habitaciones)):
@@ -242,7 +191,6 @@ def cumple_restricciones_espaciales(casa):
                 return False
     return True
 
-
 def generar_combinaciones(habitaciones):
     combinaciones_validas = []
     for habitacion_final in habitaciones_finales:
@@ -258,72 +206,150 @@ def generar_combinaciones(habitaciones):
                     combinaciones_validas.append(casa)
     return combinaciones_validas
 
+def reflejar_habitacion(habitacion, largo_casa):
+    """Refleja una habitación respecto al eje Y sin cambiar su nombre"""
+    vertices_reflejados = []
+    for x, y in habitacion.vertices:
+        # Reflejar la coordenada x respecto al eje Y
+        x_reflejado = largo_casa - x
+        vertices_reflejados.append((x_reflejado, y))
+    
+    # Invertir el orden para mantener orientación correcta
+    vertices_reflejados.reverse()
+    
+    # Mantener el mismo nombre que la habitación original
+    return Habitacion(habitacion.nombre, vertices_reflejados)
 
-def generar_planos_v1():
-    combinaciones = generar_combinaciones(habitaciones_v1)
-    planos_filtrados = [plano for plano in combinaciones if cumple_restricciones_espaciales(plano)]
-    return random.sample(planos_filtrados, min(len(planos_filtrados), len(planos_filtrados)))
+def reflejar_plano(casa):
+    """Crea una reflexión completa de la casa respecto al eje Y"""
+    casa_reflejada = Casa(casa.largo, casa.ancho, casa.tipo)  # Mismo tipo que el original
+    for habitacion in casa.habitaciones:
+        casa_reflejada.agregar_habitacion(reflejar_habitacion(habitacion, casa.largo))
+    return casa_reflejada
 
-def generar_combinaciones_sin_p5(planos_aleatorios):
-    combinaciones_sin_p5 = []
+def crear_planos_v2(combinaciones_sin_p5):
+    largo_casa = 2.440 * 2
+    ancho_casa = 2.440 * 4  # Para V2
+    
+    todos_los_planos = []
 
-    for casa in planos_aleatorios:
+    for i in range(len(combinaciones_sin_p5)):
+        casa1 = Casa(largo_casa, ancho_casa)
+        casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+        casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+        casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+        casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        todos_los_planos.append(casa1)
+        
+        casa2 = Casa(largo_casa, ancho_casa)
+        casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+        casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+        casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+        casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        todos_los_planos.append(casa2)
+
+    planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano)]
+    
+    # Crear planos V2 incluyendo los reflejados
+    planos_V2 = []
+    for plano in planos_filtrados:
+        planos_V2.append(plano)  # Añadir plano original
+        planos_V2.append(reflejar_plano(plano))  # Añadir plano reflejado
+        
+    return planos_V2
+
+def seleccionar_plano(indice):
+    st.session_state.plano_seleccionado = indice
+
+def ir_a_v2():
+    if st.session_state.plano_seleccionado is not None:
+        # Crear la lista de combinaciones sin P5 para los planos seleccionados
+        casa = st.session_state.planos_aleatorios[st.session_state.plano_seleccionado]
         nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
-            
-        # Agregar todas las habitaciones excepto la que corresponde a "P5"
+        
         for habitacion in casa.habitaciones:
             if habitacion.nombre != "P5":
                 nueva_casa.habitaciones.append(habitacion)
-            
-        # Copiar el área usada y otras variables necesarias
+        
         nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
         nueva_casa.posicion_x = casa.posicion_x
         nueva_casa.posicion_y = casa.posicion_y
         nueva_casa.altura_fila_actual = casa.altura_fila_actual
-
-        combinaciones_sin_p5.append(nueva_casa)
-    
-    return combinaciones_sin_p5  # ¡Añadir esta línea para retornar el resultado!
-
-def mostrar_v1():
-    st.header("Etapa V1: Diseño Base")
-    
-    # Usar un botón para generar los planos
-    if st.button("Generar planos V1"):
-        with st.spinner("Generando planos..."):
-            # Mover la generación de planos aquí
-            combinaciones = generar_combinaciones(habitaciones_v1)
-            planos_filtrados = [plano for plano in combinaciones if cumple_restricciones_espaciales(plano)]
-            st.session_state.planos_aleatorios = random.sample(planos_filtrados, min(len(planos_filtrados), len(planos_filtrados)))
-        st.success(f"Se han generado {len(st.session_state.planos_aleatorios)} planos válidos")
-    
-    # Mostrar planos si existen
-    if st.session_state.planos_aleatorios:
-        st.subheader(f"Planos generados: {len(st.session_state.planos_aleatorios)}")
         
-        # Usar pestañas para navegar entre planos
-        tabs = st.tabs([f"Plano {i+1}" for i in range(len(st.session_state.planos_aleatorios))])
-        
-        for i, (tab, casa) in enumerate(zip(tabs, st.session_state.planos_aleatorios)):
-            with tab:
-                fig = visualizar_plano(casa, f"Plano {i+1}")
-                st.pyplot(fig)
-        
-        # Selección para la siguiente etapa
-        plano_seleccionado = st.selectbox(
-            "Seleccione un plano para continuar a V2:", 
-            options=range(1, len(st.session_state.planos_aleatorios) + 1), 
-            format_func=lambda x: f"Plano {x}"
-        )
-        
-        if st.button("Continuar con este plano"):
-            # Guardar selección y avanzar
-            st.session_state.plano_v1_seleccion = plano_seleccionado - 1
-            st.session_state.combinaciones_sin_p5 = generar_combinaciones_sin_p5(
-                [st.session_state.planos_aleatorios[st.session_state.plano_v1_seleccion]])
-            st.success(f"¡Plano {plano_seleccionado} seleccionado! Ahora puedes continuar a V2.")
+        st.session_state.combinaciones_sin_p5 = [nueva_casa]
+        st.session_state.planos_V2 = crear_planos_v2(st.session_state.combinaciones_sin_p5)
+        st.session_state.etapa = 'V2'
+    else:
+        st.error("Por favor, selecciona un plano antes de continuar.")
 
+# Definición de las habitaciones
+habitaciones_v1 = [
+    Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
+    Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
+    Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
+    Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]),
+]
 
+habitaciones_finales = [
+    Habitacion("P8", [(0, 0), (2.295, 0), (2.295, 1.487), (0, 1.487)]),
+    Habitacion("P11", [(0, 0), (2.295, 0), (2.295, 1.588), (0, 1.588)]),
+    Habitacion("P5", [(0, 0), (4.880, 0), (4.880, 1.481), (0, 1.481)])
+]
 
+# Interfaz de Streamlit
+st.title("Modelación de Planos Arquitectónicos")
 
+# Etapa V1
+if st.session_state.etapa == 'V1':
+    st.header("Modelación V1")
     
+    # Generar planos si aún no se han generado
+    if st.session_state.planos_aleatorios is None:
+        # Generar combinaciones válidas
+        combinaciones = generar_combinaciones(habitaciones_v1)
+        planos_filtrados = [plano for plano in combinaciones if cumple_restricciones_espaciales(plano)]
+        st.session_state.planos_aleatorios = planos_filtrados
+    
+    # Mostrar los planos disponibles en una cuadrícula
+    st.write(f"Selecciona uno de los {len(st.session_state.planos_aleatorios)} planos disponibles:")
+    
+    # Crear una cuadrícula de planos con botones de selección
+    cols = st.columns(2)
+    for i, plano in enumerate(st.session_state.planos_aleatorios):
+        with cols[i % 2]:
+            img_buf = plano.visualizar_plano()
+            st.image(img_buf, caption=f"Plano {i+1}", use_column_width=True)
+            
+            # Resaltar el botón si este plano está seleccionado
+            if st.session_state.plano_seleccionado == i:
+                st.button(f"✓ Seleccionado", key=f"btn_sel_{i}", disabled=True)
+            else:
+                if st.button(f"Seleccionar Plano {i+1}", key=f"btn_{i}"):
+                    seleccionar_plano(i)
+                    st.experimental_rerun()
+    
+    # Botón para continuar a la etapa V2
+    st.write("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("Siguiente ➡️", key="btn_siguiente", use_container_width=True):
+            ir_a_v2()
+
+# Etapa V2
+elif st.session_state.etapa == 'V2':
+    st.header("Modelación V2")
+    
+    # Botón para volver a V1
+    if st.button("⬅️ Volver a V1"):
+        st.session_state.etapa = 'V1'
+        st.experimental_rerun()
+    
+    st.write("Selecciona uno de los planos generados para V2:")
+    
+    # Mostrar los planos V2 en una cuadrícula
+    cols = st.columns(2)
+    for i, plano in enumerate(st.session_state.planos_V2):
+        with cols[i % 2]:
+            img_buf = plano.visualizar_plano()
+            st.image(img_buf, caption=f"Plano V2-{i+1}", use_column_width=True)
+            st.button(f"Seleccionar Plano V2-{i+1}", key=f"btn_v2_{i}")
