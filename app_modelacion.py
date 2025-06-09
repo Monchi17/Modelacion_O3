@@ -4,15 +4,12 @@ from matplotlib.patches import Polygon
 from itertools import permutations
 import random
 import numpy as np
-import hashlib
-import time
 
 # Configuración de la página
 st.set_page_config(page_title="Modelación O3 Libre Crecimiento", layout="wide")
 
 # Título de la aplicación
 st.title("Modelación O3 Libre Crecimiento - V1")
-st.write("Generación de planos base para modelación de crecimiento libre")
 
 # Inicializar variables de estado
 if 'planos_generados' not in st.session_state:
@@ -21,8 +18,8 @@ if 'plano_seleccionado' not in st.session_state:
     st.session_state['plano_seleccionado'] = None
 if 'planos_filtrados' not in st.session_state:
     st.session_state['planos_filtrados'] = None
-if 'hash_planos' not in st.session_state:
-    st.session_state['hash_planos'] = {}
+if 'mostrar_siguiente' not in st.session_state:
+    st.session_state['mostrar_siguiente'] = False
 
 # Dimensiones de la casa
 largo_casa = 2.440 * 2
@@ -38,9 +35,12 @@ CLASIFICACIONES = [
 
 RESTRICCIONES_ESPACIALES = {
     ("Baño", "Dor"),
+    #("Cocina", "Comedor"),
     ("Estar", "Recibidor"),
     ("Recibidor", "Cocina - Comedor"),
     ("Estar", "Cocina - Comedor"),
+    #("Estar", "Estar"),
+    #("Comedor", "Comedor")
 }
 
 class Habitacion:
@@ -55,6 +55,7 @@ class Habitacion:
     def area(self):
         x, y = zip(*self.vertices)
         return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
+
 
 class Casa:
     def __init__(self, largo, ancho):
@@ -125,13 +126,13 @@ class Casa:
             else:
                 texto = f"{hab.nombre}\n{nombre_funcional}"
 
-            ax.text(cx, cy, texto, ha='center', va='center', fontsize=10)
+            ax.text(cx, cy, texto, ha='center', va='center', fontsize=17)
             
         ax.set_xlim(0, self.largo)
         ax.set_ylim(0, self.ancho)
         ax.set_aspect('equal', adjustable='box')
 
-# Definición de las habitaciones
+
 habitaciones_v1 = [Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
                    Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
                    Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]),
@@ -207,152 +208,59 @@ def generar_combinaciones(habitaciones):
                     combinaciones_validas.append(casa)
     return combinaciones_validas
 
-def generar_hash_plano(casa):
-    """Genera un hash único para un plano"""
-    info_plano = []
-    for hab in sorted(casa.habitaciones, key=lambda h: h.nombre):
-        vertices_str = ";".join([f"{round(x,3)},{round(y,3)}" for x, y in hab.vertices])
-        info_plano.append(f"{hab.nombre}:{vertices_str}")
-    
-    plano_str = "|".join(info_plano).encode()
-    return hashlib.md5(plano_str).hexdigest()[:8]  # Usar primeros 8 caracteres del hash
-
-def visualizar_todos_planos(planos):
-    """Visualiza todos los planos en una cuadrícula"""
-    num_planos = len(planos)
-    num_cols = min(4, num_planos)  # Máximo 4 columnas
-    num_filas = (num_planos + num_cols - 1) // num_cols  # Redondeo hacia arriba
-    
-    fig, axs = plt.subplots(num_filas, num_cols, figsize=(5*num_cols, 5*num_filas))
-    
-    # Asegurarse de que axs sea siempre un array 2D
-    if num_planos == 1:
-        axs = np.array([[axs]])
-    elif num_filas == 1:
-        axs = axs.reshape(1, -1)
-    
-    # Diccionario para almacenar hash de cada plano
-    hash_planos = {}
-    
-    for i, plano in enumerate(planos):
-        # Calcular fila y columna para el plano actual
-        fila = i // num_cols
-        col = i % num_cols
-        
-        # Generar hash para el plano
-        plano_hash = generar_hash_plano(plano)
-        hash_planos[i] = plano_hash
-        
-        # Visualizar plano
-        plano.visualizar_plano(axs[fila, col])
-        axs[fila, col].set_title(f"Plano {i + 1} (ID: {plano_hash})", fontsize=12)
-    
-    # Ocultar ejes vacíos si hay más subplots que planos
-    for i in range(num_planos, num_filas * num_cols):
-        fila = i // num_cols
-        col = i % num_cols
-        axs[fila, col].set_visible(False)
-    
-    # Ajustar la distribución de los subplots
-    plt.tight_layout()
-    
-    # Almacenar los hashes para referencia
-    st.session_state['hash_planos'] = hash_planos
-    
-    return fig
-
-# Función para seleccionar un plano
 def seleccionar_plano(idx):
     st.session_state['plano_seleccionado'] = idx
-    st.success(f"Has seleccionado el Plano {idx + 1} (ID: {st.session_state['hash_planos'][idx]})")
-
-# Interfaz de usuario con Streamlit
-generar_planos = st.button("Generar Planos V1", use_container_width=True)
-
-if generar_planos or st.session_state['planos_generados']:
-    if not st.session_state['planos_generados']:
-        with st.spinner("Generando planos, por favor espera..."):
-            progress_bar = st.progress(0)
-            
-            # Paso 1: Generar todas las combinaciones válidas
-            progress_bar.progress(10, text="Generando combinaciones básicas...")
+    st.session_state['mostrar_siguiente'] = True
+    
+# Botón para generar planos
+if st.button("Generar Planos V1") or st.session_state.planos_generados:
+    if not st.session_state.planos_generados:
+        with st.spinner("Generando planos, por favor espere..."):
+            # Generar todas las combinaciones válidas
             combinaciones = generar_combinaciones(habitaciones_v1)
-            
-            # Paso 2: Filtrar planos que cumplen restricciones
-            progress_bar.progress(50, text="Aplicando restricciones espaciales...")
             planos_filtrados = [plano for plano in combinaciones if cumple_restricciones_espaciales(plano)]
-            
-            # Guardar los planos en session_state
-            st.session_state['planos_filtrados'] = planos_filtrados
-            st.session_state['planos_generados'] = True
-            
-            progress_bar.progress(100, text="¡Planos generados exitosamente!")
-            time.sleep(0.5)
-            progress_bar.empty()
+            st.session_state.planos_filtrados = planos_filtrados
+            st.session_state.planos_generados = True
     
-    # Mostrar información sobre los planos generados
-    planos = st.session_state['planos_filtrados']
-    st.success(f"Se han generado {len(planos)} planos que cumplen todas las restricciones.")
+    # Mostrar los planos en una figura con 4 subplots
+    planos = st.session_state.planos_filtrados
     
-    # Crear pestañas para Vista Completa y Vista Individual
-    tab1, tab2 = st.tabs(["Vista Completa", "Vista Individual"])
+    # Calcular número de columnas y filas
+    num_cols = min(4, len(planos))
+    num_filas = (len(planos) + num_cols - 1) // num_cols
     
-    with tab1:
-        # Visualizar todos los planos
-        fig_todos = visualizar_todos_planos(planos)
-        st.pyplot(fig_todos)
+    # Crear una figura para todos los planos
+    fig, axs = plt.subplots(num_filas, num_cols, figsize=(20, 20))
+    
+    # Asegurar que axs sea un array iterable incluso con un solo plano
+    axs = axs.flatten() if len(planos) > 1 else [axs]
+    
+    # Visualizar cada plano
+    for i, casa in enumerate(planos):
+        casa.visualizar_plano(axs[i])
+        axs[i].set_title(f"Plano {i + 1}", fontsize=30)
+    
+    # Ocultar ejes vacíos
+    for j in range(len(planos), len(axs)):
+        axs[j].set_visible(False)
+    
+    # Mostrar la figura en Streamlit
+    plt.tight_layout()
+    st.pyplot(fig)
+    
+    # Columnas para los botones de selección
+    cols = st.columns(num_cols)
+    for i in range(len(planos)):
+        col_idx = i % num_cols
+        with cols[col_idx]:
+            if st.button(f"Seleccionar Plano {i+1}", key=f"select_{i}"):
+                seleccionar_plano(i)
+    
+    # Mostrar mensaje de selección y botón de siguiente
+    if st.session_state.mostrar_siguiente:
+        idx = st.session_state.plano_seleccionado
+        st.success(f"Has seleccionado el Plano {idx+1}")
         
-        # Crear botones para seleccionar plano (organizados en filas de 4)
-        st.write("### Selecciona un plano:")
-        
-        # Organizar botones en filas de 4
-        num_planos = len(planos)
-        num_filas_botones = (num_planos + 3) // 4  # Redondeo hacia arriba
-        
-        for fila in range(num_filas_botones):
-            cols = st.columns(4)
-            for col in range(4):
-                idx = fila * 4 + col
-                if idx < num_planos:
-                    with cols[col]:
-                        if st.button(f"Plano {idx + 1}", key=f"btn_{idx}", use_container_width=True):
-                            seleccionar_plano(idx)
-    
-    with tab2:
-        if st.session_state['plano_seleccionado'] is not None:
-            # Mostrar el plano seleccionado con más detalle
-            idx = st.session_state['plano_seleccionado']
-            st.write(f"### Plano {idx + 1} seleccionado")
-            
-            fig, ax = plt.subplots(figsize=(10, 8))
-            planos[idx].visualizar_plano(ax)
-            ax.set_title(f"Detalle de Plano {idx + 1}", fontsize=16)
-            st.pyplot(fig)
-            
-            # Mostrar información adicional del plano
-            st.write("#### Información de habitaciones:")
-            
-            # Crear tabla con información de las habitaciones
-            data = []
-            for hab in planos[idx].habitaciones:
-                nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura)
-                data.append({
-                    "Nombre": hab.nombre,
-                    "Tipo": nombre_funcional,
-                    "Ancho": f"{hab.ancho:.2f} m",
-                    "Altura": f"{hab.altura:.2f} m",
-                    "Área": f"{hab.area():.2f} m²"
-                })
-            
-            st.table(data)
-        else:
-            st.info("Por favor, selecciona un plano en la pestaña Vista Completa.")
-
-# Botón para avanzar a V2 (solo visible cuando hay un plano seleccionado)
-if st.session_state.plano_seleccionado is not None:
-    st.divider()
-    st.write("### Fase siguiente")
-    if st.button("Continuar a fase V2", type="primary", use_container_width=True):
-        st.success(f"Avanzando a la fase V2 con el Plano {st.session_state.plano_seleccionado + 1}")
-        # Aquí se guardaría el plano seleccionado para V2
-        # y se redireccionaría a la siguiente página
+        if st.button("Siguiente - Continuar a V2", type="primary"):
+            st.success("Continuando a V2... (Esta funcionalidad aún no está implementada)")
+            # Aquí iría la redirección o cambio a V2
