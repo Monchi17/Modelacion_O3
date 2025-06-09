@@ -264,7 +264,7 @@ def mostrar_planos(planos):
             else:
                 if st.button(f"Seleccionar", key=f"btn_{i}"):
                     seleccionar_plano(i)
-                    st.experimental_rerun()
+                
 
 def siguiente_paso():
     if st.session_state.plano_seleccionado is not None:
