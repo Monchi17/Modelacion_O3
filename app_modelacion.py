@@ -8,7 +8,7 @@ from io import BytesIO
 
 # Configuración de la página
 st.set_page_config(page_title="Modelación de Planos", layout="wide")
-st.title("Modelación de Planos Arquitectónicos")
+st.title("Modelación de Planos")
 
 # Inicializar variables de estado
 if 'plano_seleccionado' not in st.session_state:
