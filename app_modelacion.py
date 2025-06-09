@@ -53,14 +53,6 @@ def ir_a_v2():
     st.session_state['fase_actual'] = 'V2'
     st.session_state['planos_v2'] = None  # Reiniciar planos_v2 para regenerarlos
 
-# Estructura condicional para mostrar contenido según la fase
-if st.session_state.fase_actual == 'V1':
-    # Código de la fase V1
-    mostrar_fase_v1()
-elif st.session_state.fase_actual == 'V2':
-    # Código de la fase V2
-    mostrar_fase_v2()
-    
 def mostrar_fase_v1():
     # Dimensiones de la casa
     largo_casa = 2.440 * 2
@@ -252,7 +244,7 @@ def mostrar_fase_v1():
         st.session_state['mostrar_siguiente'] = True
 
 
-# Botón para generar planos
+    # Botón para generar planos
     if st.button("Generar Planos V1") or st.session_state.planos_generados:
         if not st.session_state.planos_generados:
             with st.spinner("Generando planos, por favor espere..."):
@@ -330,6 +322,7 @@ def mostrar_fase_v2():
 
                 # Añadir la nueva casa a la lista
                 combinaciones_sin_p5.append(nueva_casa)
+                
             CLASIFICACIONES_V2 = [
                 {"nombre": "Baño", "ancho_min": 0.0, "ancho_max": 1.351, "largo_min": 0.0, "largo_max": 2.983},
                 {"nombre": "Dor", "ancho_min": 3.5, "ancho_max": 3.6, "largo_min": 3.9, "largo_max": 4.0},
@@ -539,7 +532,7 @@ def mostrar_fase_v2():
 
             # Ajustar la distribución de los subplots
             plt.tight_layout()
-            plt.pysplot(fig)
+            st.pysplot(fig)
 
            # Botones de selección para planos V2
             cols = st.columns(min(4, len(planos_v2)))
@@ -557,4 +550,11 @@ def mostrar_fase_v2():
                     st.session_state['fase_actual'] = 'V3'
                     st.experimental_rerun()
             
-            
+# Estructura condicional para mostrar contenido según la fase
+if st.session_state.fase_actual == 'V1':
+    # Código de la fase V1
+    mostrar_fase_v1()
+elif st.session_state.fase_actual == 'V2':
+    # Código de la fase V2
+    mostrar_fase_v2()
+    
