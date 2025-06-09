@@ -218,11 +218,10 @@ def mostrar_v1():
     st.write("### Haz clic en un plano para seleccionarlo:")
     
     # Crear dos filas de planos para mejor visualización
-    row1 = st.columns(2)
-    row2 = st.columns(2)
+    row1 = st.columns(4
     
     # Primera fila
-    for i in range(min(2, len(st.session_state.planos_v1))):
+    for i in range(min(4, len(st.session_state.planos_v1))):
         with row1[i]:
             fig, ax = plt.subplots(figsize=(6, 6))
             st.session_state.planos_v1[i].visualizar_plano(ax)
@@ -236,20 +235,6 @@ def mostrar_v1():
                 st.session_state.plano_seleccionado = i
                 st.success(f"✅ Plano {i+1} seleccionado")
     
-    # Segunda fila
-    for i in range(2, min(4, len(st.session_state.planos_v1))):
-        with row2[i-2]:
-            fig, ax = plt.subplots(figsize=(6, 6))
-            st.session_state.planos_v1[i].visualizar_plano(ax)
-            ax.set_title(f"Plano {i + 1}", fontsize=15)
-            
-            # Área de figura con detección de clics
-            clicked = st.button(f"Seleccionar Plano {i+1}", key=f"select_plan_{i}")
-            st.pyplot(fig)
-            
-            if clicked:
-                st.session_state.plano_seleccionado = i
-                st.success(f"✅ Plano {i+1} seleccionado")
     
     # Mostrar información de selección
     if st.session_state.plano_seleccionado is not None:
