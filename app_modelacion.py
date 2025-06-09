@@ -5,6 +5,7 @@ from itertools import permutations
 import random
 import numpy as np
 
+
 # Configuración de la página
 st.set_page_config(page_title="Modelación O3 Libre Crecimiento", layout="wide")
 
@@ -306,6 +307,27 @@ def mostrar_fase_v1():
 
 
 def mostrar_fase_v2():
+    # Crear una nueva lista que excluya la habitación "P5" solo de los planos seleccionados en planos_aleatorios
+    combinaciones_sin_p5 = []
+
+    for casa in planos_aleatorios:  # Cambiar combinaciones por planos_aleatorios
+        # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
+        nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
+    
+        # Agregar todas las habitaciones excepto la que corresponde a "P5"
+        for habitacion in casa.habitaciones:
+            if habitacion.nombre != "P5":
+                nueva_casa.habitaciones.append(habitacion)
+    
+        # Copiar el área usada y otras variables necesarias
+        nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+        nueva_casa.posicion_x = casa.posicion_x
+        nueva_casa.posicion_y = casa.posicion_y
+        nueva_casa.altura_fila_actual = casa.altura_fila_actual
+
+        # Añadir la nueva casa a la lista
+        combinaciones_sin_p5.append(nueva_casa)
+
     # Generar planos V2 si no existen
     if st.session_state.planos_v2 is None:
         with st.spinner("Generando planos V2, por favor espere..."):
