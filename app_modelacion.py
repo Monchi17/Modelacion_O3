@@ -25,6 +25,8 @@ if 'combinaciones_sin_p5' not in st.session_state:
     st.session_state['combinaciones_sin_p5'] = None
 if 'planos_v2' not in st.session_state:
     st.session_state['planos_v2'] = None
+if 'mostrar_siguiente' not in st.session_state:  # Añade esta línea
+    st.session_state['mostrar_siguiente'] = False  # Inicializada como False
 
 # Función para cambiar a la fase V2
 def ir_a_v2():
