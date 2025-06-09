@@ -463,7 +463,6 @@ def siguiente_paso():
     else:
         st.error("Por favor, selecciona un plano antes de continuar")
 
-# Interfaz principal
 if st.session_state.etapa == 'V1':
     st.title("Modelación de Planos - V1")
     
@@ -479,36 +478,97 @@ if st.session_state.etapa == 'V1':
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("Siguiente", use_container_width=True):
-            siguiente_paso()
-            st.rerun()
+            if st.session_state.plano_seleccionado is not None:
+                # Guardar el plano seleccionado antes de cambiar de etapa
+                if 'plano_v1_seleccionado' not in st.session_state:
+                    st.session_state.plano_v1_seleccionado = st.session_state.planos_generados[st.session_state.plano_seleccionado]
+                
+                # Cambiar a la etapa V2
+                st.session_state.etapa = 'V2'
+                st.rerun()
+            else:
+                st.error("Por favor, selecciona un plano antes de continuar")
 
 elif st.session_state.etapa == 'V2':
     st.title("Modelación de Planos - V2")
     
-    # Obtener el plano seleccionado de V1
-    plano_seleccionado_v1 = st.session_state.planos_generados[st.session_state.plano_seleccionado]
+    # Verificar que tenemos un plano seleccionado de V1
+    if 'plano_v1_seleccionado' not in st.session_state:
+        st.error("No hay plano seleccionado de la etapa V1. Volviendo a la selección...")
+        st.session_state.etapa = 'V1'
+        st.rerun()
     
     # Generar planos V2 basados en el plano seleccionado
-    planos_v2 = generar_planos_v2(plano_seleccionado_v1)
+    with st.spinner("Generando planos V2..."):
+        # Crear una nueva casa sin la habitación P5
+        casa_sin_p5 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
+        
+        # Agregar todas las habitaciones excepto P5
+        for habitacion in st.session_state.plano_v1_seleccionado.habitaciones:
+            if habitacion.nombre != "P5":
+                casa_sin_p5.agregar_habitacion(habitacion)
+                
+        # Generar planos V2
+        todos_los_planos = []
+        
+        # Primer tipo de distribución
+        casa1 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 1")
+        casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+        casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+        casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+        for hab in casa_sin_p5.habitaciones:
+            casa1.agregar_habitacion(hab)
+        todos_los_planos.append(casa1)
+        
+        # Segundo tipo de distribución
+        casa2 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 2")
+        casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+        casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+        casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+        for hab in casa_sin_p5.habitaciones:
+            casa2.agregar_habitacion(hab)
+        todos_los_planos.append(casa2)
+        
+        # Asegurarnos de tener planos para mostrar
+        planos_v2 = []
+        # Intentar filtrar planos que cumplen restricciones
+        planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
+        
+        # Si no hay planos que cumplan las restricciones, usar los planos sin filtrar
+        if not planos_filtrados:
+            st.warning("Ningún plano cumple las restricciones espaciales. Mostrando todos los planos.")
+            planos_filtrados = todos_los_planos
+        
+        # Generar planos reflejados
+        for plano in planos_filtrados:
+            planos_v2.append(plano)  # Plano original
+            planos_v2.append(reflejar_plano(plano))  # Plano reflejado
     
-    # Mostrar los planos
-    st.write("Selecciona uno de los planos disponibles:")
-    mostrar_planos_v2(planos_v2)
-    
-    # Botón para volver a V1
-    st.write("---")
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        if st.button("Volver a V1", use_container_width=True):
-            st.session_state.etapa = 'V1'
-            st.session_state.planos_v2_generados = False
-            st.rerun()
-    
-    # Botón para finalizar
-    with col3:
-        if st.button("Finalizar", use_container_width=True):
-            if st.session_state.plano_seleccionado_v2 is not None:
-                st.session_state.etapa = 'final'
+    # Mostrar los planos V2
+    if planos_v2:
+        st.write("Selecciona uno de los planos disponibles:")
+        mostrar_planos_v2(planos_v2)
+        
+        # Botón para volver a V1
+        st.write("---")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col1:
+            if st.button("Volver a V1", use_container_width=True):
+                st.session_state.etapa = 'V1'
+                if 'plano_seleccionado_v2' in st.session_state:
+                    del st.session_state.plano_seleccionado_v2
                 st.rerun()
-            else:
-                st.error("Por favor, selecciona un plano antes de finalizar")
+        
+        # Botón para finalizar
+        with col3:
+            if st.button("Finalizar", use_container_width=True):
+                if 'plano_seleccionado_v2' in st.session_state and st.session_state.plano_seleccionado_v2 is not None:
+                    st.session_state.etapa = 'final'
+                    st.rerun()
+                else:
+                    st.error("Por favor, selecciona un plano antes de finalizar")
+    else:
+        st.error("No se pudieron generar planos V2. Volviendo a V1...")
+        st.session_state.etapa = 'V1'
+        time.sleep(2)  # Dar tiempo para leer el mensaje
+        st.rerun()
