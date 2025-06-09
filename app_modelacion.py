@@ -307,8 +307,6 @@ def mostrar_fase_v1():
 
 
 def mostrar_fase_v2():
-    
-
     # Generar planos V2 si no existen
     if st.session_state.planos_v2 is None:
         with st.spinner("Generando planos V2, por favor espere..."):
@@ -332,14 +330,13 @@ def mostrar_fase_v2():
 
                 # Añadir la nueva casa a la lista
                 combinaciones_sin_p5.append(nueva_casa)
-        CLASIFICACIONES_V2 = [
+            CLASIFICACIONES_V2 = [
                 {"nombre": "Baño", "ancho_min": 0.0, "ancho_max": 1.351, "largo_min": 0.0, "largo_max": 2.983},
                 {"nombre": "Dor", "ancho_min": 3.5, "ancho_max": 3.6, "largo_min": 3.9, "largo_max": 4.0},
                 {"nombre": "Cocina", "ancho_min": 2.5, "ancho_max": 2.6, "largo_min": 2.8, "largo_max": 2.9},
                 {"nombre": "Comedor", "ancho_min": 2.2, "ancho_max": 2.4, "largo_min": 2.8, "largo_max": 2.9},
                 {"nombre": "Estar", "ancho_min": 2.2, "ancho_max": 2.4, "largo_min": 2.4, "largo_max": 4.0},
-                {"nombre": "Recibidor", "ancho_min": 2.2, "ancho_max": 4.9, "largo_min": 1.4, "largo_max": 1.6},
-            ]
+                {"nombre": "Recibidor", "ancho_min": 2.2, "ancho_max": 4.9, "largo_min": 1.4, "largo_max": 1.6},]
             
             # Dimensiones para V2
             largo_casa_v2 = 2 * 2.440
