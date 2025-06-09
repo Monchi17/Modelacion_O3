@@ -9,7 +9,7 @@ import numpy as np
 st.set_page_config(page_title="Modelación O3 Libre Crecimiento", layout="wide")
 
 # Título de la aplicación
-st.title("Modelación O3 Libre Crecimiento - V1")
+st.title("Modelación planos de casa")
 
 # Inicializar variables de estado
 if 'planos_generados' not in st.session_state:
@@ -213,7 +213,7 @@ def seleccionar_plano(idx):
     st.session_state['mostrar_siguiente'] = True
     
 # Botón para generar planos
-if st.button("Generar Planos V1") or st.session_state.planos_generados:
+if st.session_state.planos_generados:
     if not st.session_state.planos_generados:
         with st.spinner("Generando planos, por favor espere..."):
             # Generar todas las combinaciones válidas
