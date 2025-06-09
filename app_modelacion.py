@@ -553,7 +553,7 @@ def mostrar_fase_v2():
                     st.experimental_rerun()
             
 # Estructura condicional para mostrar contenido según la fase
-if st.session_state.fase_actual == 'V1':
+if st.session_state['fase_actual'] == 'V1':
     # Código de la fase V1
     mostrar_fase_v1()
 elif st.session_state.fase_actual == 'V2':
