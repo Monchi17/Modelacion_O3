@@ -30,8 +30,22 @@ if 'mostrar_siguiente' not in st.session_state:  # Añade esta línea
 
 # Función para cambiar a la fase V2
 def ir_a_v2():
-    # Crear una lista que excluya la habitación "P5" del plano seleccionado
+    # Verificar que el plano seleccionado sea válido
+    if 'plano_seleccionado' not in st.session_state or st.session_state.plano_seleccionado is None:
+        st.error("Por favor, selecciona un plano primero.")
+        return
+    
     idx = st.session_state.plano_seleccionado
+    
+    # Verificar que la lista de planos filtrados exista y tenga el índice necesario
+    if 'planos_filtrados' not in st.session_state or not st.session_state.planos_filtrados:
+        st.error("Error: No hay planos disponibles.")
+        return
+    
+    if idx >= len(st.session_state.planos_filtrados):
+        st.error(f"Error: El índice {idx} está fuera de rango.")
+        return
+    
     plano = st.session_state.planos_filtrados[idx]
     
     # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
