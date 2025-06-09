@@ -307,32 +307,32 @@ def mostrar_fase_v1():
 
 
 def mostrar_fase_v2():
-    # Crear una nueva lista que excluya la habitación "P5" solo de los planos seleccionados en planos_aleatorios
-    combinaciones_sin_p5 = []
-
-    for casa in planos_aleatorios:  # Cambiar combinaciones por planos_aleatorios
-        # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
-        nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
     
-        # Agregar todas las habitaciones excepto la que corresponde a "P5"
-        for habitacion in casa.habitaciones:
-            if habitacion.nombre != "P5":
-                nueva_casa.habitaciones.append(habitacion)
-    
-        # Copiar el área usada y otras variables necesarias
-        nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
-        nueva_casa.posicion_x = casa.posicion_x
-        nueva_casa.posicion_y = casa.posicion_y
-        nueva_casa.altura_fila_actual = casa.altura_fila_actual
-
-        # Añadir la nueva casa a la lista
-        combinaciones_sin_p5.append(nueva_casa)
 
     # Generar planos V2 si no existen
     if st.session_state.planos_v2 is None:
         with st.spinner("Generando planos V2, por favor espere..."):
             # Actualizar las clasificaciones para V2
-            CLASIFICACIONES_V2 = [
+            # Crear una nueva lista que excluya la habitación "P5" solo de los planos seleccionados en planos_aleatorios
+            combinaciones_sin_p5 = []
+            for casa in planos_aleatorios:  # Cambiar combinaciones por planos_aleatorios
+                # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
+                nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
+    
+                # Agregar todas las habitaciones excepto la que corresponde a "P5"
+                for habitacion in casa.habitaciones:
+                    if habitacion.nombre != "P5":
+                        nueva_casa.habitaciones.append(habitacion)
+    
+                # Copiar el área usada y otras variables necesarias
+                nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+                nueva_casa.posicion_x = casa.posicion_x
+                nueva_casa.posicion_y = casa.posicion_y
+                nueva_casa.altura_fila_actual = casa.altura_fila_actual
+
+                # Añadir la nueva casa a la lista
+                combinaciones_sin_p5.append(nueva_casa)
+        CLASIFICACIONES_V2 = [
                 {"nombre": "Baño", "ancho_min": 0.0, "ancho_max": 1.351, "largo_min": 0.0, "largo_max": 2.983},
                 {"nombre": "Dor", "ancho_min": 3.5, "ancho_max": 3.6, "largo_min": 3.9, "largo_max": 4.0},
                 {"nombre": "Cocina", "ancho_min": 2.5, "ancho_max": 2.6, "largo_min": 2.8, "largo_max": 2.9},
