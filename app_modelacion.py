@@ -30,45 +30,59 @@ if 'mostrar_siguiente' not in st.session_state:  # Añade esta línea
 
 # Función para cambiar a la fase V2
 def ir_a_v2():
-    # Verificar que el plano seleccionado sea válido
-    if 'plano_seleccionado' not in st.session_state or st.session_state.plano_seleccionado is None:
+    """
+    Prepara la transición de la fase V1 a V2, excluyendo la habitación P5
+    del plano seleccionado y configurando el estado para la fase V2.
+    """
+    # Verificar que haya un plano seleccionado
+    if 'plano_seleccionado' not in st.session_state or st.session_state['plano_seleccionado'] is None:
         st.error("Por favor, selecciona un plano primero.")
         return
     
-    idx = st.session_state.plano_seleccionado
+    # Obtener el índice del plano seleccionado
+    idx = st.session_state['plano_seleccionado']
     
-    # Verificar que la lista de planos filtrados exista y tenga el índice necesario
-    if 'planos_filtrados' not in st.session_state or not st.session_state.planos_filtrados:
-        st.error("Error: No hay planos disponibles.")
+    # Verificar que planos_filtrados exista y tenga el plano seleccionado
+    if 'planos_filtrados' not in st.session_state or not st.session_state['planos_filtrados']:
+        st.error("No hay planos disponibles para continuar.")
         return
     
-    if idx >= len(st.session_state.planos_filtrados):
-        st.error(f"Error: El índice {idx} está fuera de rango.")
+    if idx >= len(st.session_state['planos_filtrados']):
+        st.error(f"Índice de plano inválido: {idx}")
         return
     
-    plano = st.session_state.planos_filtrados[idx]
+    # Obtener el plano seleccionado
+    plano = st.session_state['planos_filtrados'][idx]
     
-    # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
-    nueva_casa = Casa(largo=plano.largo, ancho=plano.ancho)
+    # Verificar que el plano sea una instancia válida con los atributos necesarios
+    if not hasattr(plano, 'largo') or not hasattr(plano, 'ancho'):
+        st.error("El plano seleccionado no tiene las propiedades necesarias.")
+        return
     
-    # Agregar todas las habitaciones excepto la que corresponde a "P5"
-    for habitacion in plano.habitaciones:
-        if habitacion.nombre != "P5":
-            nueva_casa.habitaciones.append(habitacion)
-    
-    # Copiar el área usada y otras variables necesarias
-    nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
-    nueva_casa.posicion_x = plano.posicion_x
-    nueva_casa.posicion_y = plano.posicion_y
-    nueva_casa.altura_fila_actual = plano.altura_fila_actual
-
-    # Guardar en el estado
-    st.session_state['combinaciones_sin_p5'] = [nueva_casa]
-    
-    # Cambiar a la fase V2
-    st.session_state['fase_actual'] = 'V2'
-    st.session_state['planos_v2'] = None  # Reiniciar planos_v2 para regenerarlos
-
+    # Crear una nueva instancia de Casa sin la habitación P5
+    try:
+        nueva_casa = Casa(largo=plano.largo, ancho=plano.ancho)
+        
+        # Agregar todas las habitaciones excepto P5
+        for habitacion in plano.habitaciones:
+            if habitacion.nombre != "P5":
+                nueva_casa.habitaciones.append(habitacion)
+        
+        # Copiar el área usada y otras variables necesarias
+        nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+        nueva_casa.posicion_x = plano.posicion_x
+        nueva_casa.posicion_y = plano.posicion_y
+        nueva_casa.altura_fila_actual = plano.altura_fila_actual
+        
+        # Guardar en el estado
+        st.session_state['combinaciones_sin_p5'] = [nueva_casa]
+        st.session_state['fase_actual'] = 'V2'
+        st.session_state['planos_v2'] = None  # Reiniciar planos_v2 para regenerarlos
+        
+    except Exception as e:
+        st.error(f"Error al crear la nueva casa: {str(e)}")
+        import traceback
+        st.error(traceback.format_exc())
 def mostrar_fase_v1():
     # Dimensiones de la casa
     largo_casa = 2.440 * 2
