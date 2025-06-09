@@ -230,15 +230,11 @@ def mostrar_v1():
             # Área de figura con detección de clics
             clicked = st.button(f"Seleccionar Plano {i+1}", key=f"select_plan_{i}")
             st.pyplot(fig)
-            
-            if clicked:
-                st.session_state.plano_seleccionado = i
-                st.success(f"✅ Plano {i+1} seleccionado")
     
     
     # Mostrar información de selección
     if st.session_state.plano_seleccionado is not None:
-        st.info(f"🏠 Plano seleccionado: Plano {st.session_state.plano_seleccionado + 1}")
+        st.info(f"🏠 ✅Plano seleccionado: Plano {st.session_state.plano_seleccionado + 1}")
     
     # Botón de navegación en la esquina inferior izquierda
     col1, col2 = st.columns([1, 3])
