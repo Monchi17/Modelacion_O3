@@ -84,6 +84,7 @@ def ir_a_v2():
         import traceback
         st.error(traceback.format_exc())
 def mostrar_fase_v1():
+    
     # Dimensiones de la casa
     largo_casa = 2.440 * 2
     ancho_casa = 2.440 * 3
@@ -352,6 +353,96 @@ def mostrar_fase_v2():
 
                 # Añadir la nueva casa a la lista
                 combinaciones_sin_p5.append(nueva_casa)
+                
+            class Habitacion:
+                def __init__(self, nombre, vertices):
+                self.nombre = nombre
+                self.vertices = vertices
+                x_vals = [x for x, y in vertices]
+                y_vals = [y for x, y in vertices]
+                self.ancho = round(max(x_vals) - min(x_vals), 3)
+                self.altura = round(max(y_vals) - min(y_vals), 3)
+
+            def area(self):
+                x, y = zip(*self.vertices)
+                return 0.5 * abs(sum(x[i] * y[i+1] - x[i+1] * y[i] for i in range(-1, len(x)-1)))
+
+
+        class Casa:
+            def __init__(self, largo, ancho):
+                self.largo = largo
+                self.ancho = ancho
+                self.area_total = largo * ancho
+                self.habitaciones = []
+                self.area_usada = 0
+                self.posicion_x = 0
+                self.posicion_y = 0
+                self.altura_fila_actual = 0
+            def agregar_habitacion(self, habitacion):
+                if self.area_usada + habitacion.area() <= self.area_total:
+                    if self.posicion_x + habitacion.ancho > self.largo:
+                        self.posicion_x = 0
+                        self.posicion_y += self.altura_fila_actual
+                        self.altura_fila_actual = 0
+
+                    vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
+                    habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
+                    self.habitaciones.append(habitacion_desplazada)
+                    self.area_usada += habitacion.area()
+
+                    self.posicion_x += habitacion.ancho
+                    self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
+
+                    if self.posicion_y + self.altura_fila_actual > self.ancho:
+                        return False
+                    return True
+                return False
+
+            def agregar_habitacion_inferior(self, habitacion_final):
+                if self.posicion_y + self.altura_fila_actual + habitacion_final.altura <= self.ancho:
+                    self.posicion_x = 0
+                    self.posicion_y += self.altura_fila_actual
+
+                    vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion_final.vertices]
+                    habitacion_desplazada = Habitacion(habitacion_final.nombre, vertices_desplazados)
+                    self.habitaciones.append(habitacion_desplazada)
+                    self.area_usada += habitacion_final.area()
+
+                    self.posicion_x += habitacion_final.ancho
+                    self.altura_fila_actual = habitacion_final.altura
+                    return True
+                return False
+
+            def cumple_dimensiones_exactas(self):
+                return self.posicion_x == self.largo and self.posicion_y + self.altura_fila_actual == self.ancho
+
+            def es_valida(self):
+                return (self.area_usada <= self.area_total and 
+                        self.posicion_y + self.altura_fila_actual <= self.ancho)
+
+            def visualizar_plano(self, ax):
+                contador_dormitorios = 1
+
+                for hab in self.habitaciones:
+                    poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+                    ax.add_patch(poligono)
+                    cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
+                    cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
+                    nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura)
+            
+                    if nombre_funcional == "Dor":
+                        texto = f"{hab.nombre}\nDor {contador_dormitorios}"
+                        contador_dormitorios += 1
+                    else:
+                        texto = f"{hab.nombre}\n{nombre_funcional}"
+
+                    ax.text(cx, cy, texto, ha='center', va='center', fontsize=17)
+
+            
+                ax.set_xlim(0, self.largo)
+                ax.set_ylim(0, self.ancho)
+                ax.set_aspect('equal', adjustable='box')
+
                 
             CLASIFICACIONES_V2 = [
                 {"nombre": "Baño", "ancho_min": 0.0, "ancho_max": 1.351, "largo_min": 0.0, "largo_max": 2.983},
