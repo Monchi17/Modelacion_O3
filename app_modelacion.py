@@ -358,7 +358,9 @@ def generar_planos_v1():
             if not planos_filtrados:
                 st.warning("No se pudieron generar planos con las restricciones actuales. Mostrando planos predefinidos.")
                 planos_filtrados = generar_planos_predefinidos()
-                
+
+
+            st.session_state.planos_generados = planos_filtrados
             # # Limitar a 4 planos
             # if len(planos_filtrados) > 4:
             #     st.session_state.planos_generados = random.sample(planos_filtrados, 4)
