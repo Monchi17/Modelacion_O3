@@ -347,57 +347,71 @@ def generar_planos_v1():
             
     return st.session_state.planos_generados
 
+def quitar_p5_de_planos(planos_v1):
+    combinaciones_sin_p5 = []
+    for casa in planos_v1:
+        nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
+        for habitacion in casa.habitaciones:
+            if habitacion.nombre != "P5":
+                nueva_casa.habitaciones.append(habitacion)
+        nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+        nueva_casa.posicion_x = casa.posicion_x
+        nueva_casa.posicion_y = casa.posicion_y
+        nueva_casa.altura_fila_actual = casa.altura_fila_actual
+        combinaciones_sin_p5.append(nueva_casa)
+    return combinaciones_sin_p5
 
-def generar_planos_v2(plano_seleccionado_v1):
+def generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa, ancho_casa):
+    todos_los_planos = []
+
+    for i in range(len(combinaciones_sin_p5)):
+        casa1 = Casa(largo_casa, ancho_casa)
+        casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+        casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+        casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+        casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        todos_los_planos.append(casa1)
+
+        casa2 = Casa(largo_casa, ancho_casa)
+        casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+        casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+        casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+        casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+        todos_los_planos.append(casa2)
+
+    return todos_los_planos
+    
+def generar_planos_v2():
     if not st.session_state.planos_v2_generados:
         with st.spinner("Generando planos V2..."):
+            plano_v1_seleccionado = st.session_state.plano_v1_seleccionado
+
+            # Paso 1: quitar habitación P5
+            planos_sin_p5 = quitar_p5_de_planos([plano_v1_seleccionado])
+
+            # Paso 2: generar planos V2 usando la metodología original
+            todos_los_planos = generar_planos_v2_desde_v1_sin_p5(planos_sin_p5, largo_casa_v2, ancho_casa_v2)
+
+            # Paso 3: filtrar por restricciones espaciales
+            planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(
+                plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
+
+            if not planos_filtrados:
+                st.warning("Ningún plano V2 cumple con las restricciones. Mostrando todos los disponibles.")
+                planos_filtrados = todos_los_planos
+
+            # Paso 4: agregar planos reflejados
             planos_v2 = []
-
-            # Paso 1: crear copia limpia de habitaciones V1 sin P5
-            habitaciones_base = []
-            for hab in plano_seleccionado_v1.habitaciones:
-                if hab.nombre != "P5":
-                    nueva_vertices = [(x, y) for x, y in hab.vertices]
-                    habitaciones_base.append(Habitacion(hab.nombre, nueva_vertices))
-
-            # Paso 2: calcular altura máxima alcanzada por las habitaciones V1
-            y_max = max(y for hab in habitaciones_base for _, y in hab.vertices)
-
-            # Paso 3: generar dos variantes de planos con habitaciones nuevas encima
-            casas_v2 = []
-
-            # Variante 1
-            casa1 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 1")
-            casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
-            casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
-            casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
-
-            for hab in habitaciones_base:
-                casa1.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
-            casas_v2.append(casa1)
-
-            # Variante 2
-            casa2 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 2")
-            casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
-            casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
-            casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
-
-            for hab in habitaciones_base:
-                casa2.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
-            casas_v2.append(casa2)
-
-            # Paso 4: aplicar restricciones espaciales
-            planos_validos = [plano for plano in casas_v2 if cumple_restricciones_espaciales(plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
-
-            # Paso 5: reflejar y almacenar planos
-            for plano in planos_validos:
-                planos_v2.append(plano)
-                planos_v2.append(reflejar_plano(plano))
+            for plano in planos_filtrados:
+                planos_v2.append(plano)  # original
+                planos_v2.append(reflejar_plano(plano))  # reflejado
 
             st.session_state.planos_v2 = planos_v2
             st.session_state.planos_v2_generados = True
 
     return st.session_state.planos_v2
+
+
 
 
 def mostrar_planos_v1(planos):
@@ -488,7 +502,7 @@ elif st.session_state.etapa == 'V2':
     # Generar planos V2 basados en el plano seleccionado
     with st.spinner("Generando planos V2..."):
         # Crear una nueva casa sin la habitación P5
-        casa_sin_p5 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
+        casa_aqui = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
         
         # Agregar todas las habitaciones excepto P5
         for habitacion in st.session_state.plano_v1_seleccionado.habitaciones:
