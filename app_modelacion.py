@@ -296,38 +296,6 @@ def reflejar_plano(casa):
         casa_reflejada.agregar_habitacion(reflejar_habitacion(habitacion, casa.largo))
     return casa_reflejada
 
-# def generar_planos_predefinidos():
-#     planos = []
-    
-#     # Plano 1
-#     casa1 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-#     casa1.agregar_habitacion(Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]))
-#     casa1.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-#     planos.append(casa1)
-    
-#     # Plano 2
-#     casa2 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-#     casa2.agregar_habitacion(Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]))
-#     casa2.agregar_habitacion(Habitacion("P3", [(1.351, 0), (3.936, 0), (3.936, 2.856), (1.351, 2.856)]))
-#     casa2.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-#     planos.append(casa2)
-    
-#     # Plano 3
-#     casa3 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-#     casa3.agregar_habitacion(Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]))
-#     casa3.agregar_habitacion(Habitacion("P2", [(2.295, 0), (3.646, 0), (3.646, 2.983), (2.295, 2.983)]))
-#     casa3.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-#     planos.append(casa3)
-    
-#     # Plano 4
-#     casa4 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-#     casa4.agregar_habitacion(Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]))
-#     casa4.agregar_habitacion(Habitacion("P4", [(2.585, 0), (4.880, 0), (4.880, 2.856), (2.585, 2.856)]))
-#     casa4.agregar_habitacion(Habitacion("P5", [(0, 2.856), (4.880, 2.856), (4.880, 4.337), (0, 4.337)]))
-#     planos.append(casa4)
-    
-#     return planos
-
 def seleccionar_plano(index):
     st.session_state.plano_seleccionado = index
 
@@ -389,27 +357,81 @@ def generar_planos_v2():
             # Paso 1: quitar habitación P5
             planos_sin_p5 = quitar_p5_de_planos([plano_v1_seleccionado])
 
-            # Paso 2: generar planos V2 usando la metodología original
+            # Paso 2: generar planos V2
             todos_los_planos = generar_planos_v2_desde_v1_sin_p5(planos_sin_p5, largo_casa_v2, ancho_casa_v2)
 
-            # Paso 3: filtrar por restricciones espaciales
+            # Paso 3: aplicar restricciones
             planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(
                 plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
-
             if not planos_filtrados:
                 st.warning("Ningún plano V2 cumple con las restricciones. Mostrando todos los disponibles.")
                 planos_filtrados = todos_los_planos
 
-            # Paso 4: agregar planos reflejados
-            planos_v2 = []
-            for plano in planos_filtrados:
-                planos_v2.append(plano)  # original
-                planos_v2.append(reflejar_plano(plano))  # reflejado
+            planos_seleccionados = planos_filtrados.copy()
 
-            st.session_state.planos_v2 = planos_v2
+            # Paso 4: generar visualización con subplots (como en matplotlib original)
+            num_planos_total = len(planos_seleccionados) * 2  # Original + reflejado
+            num_cols = min(2, num_planos_total)
+            num_filas = (num_planos_total + num_cols - 1) // num_cols
+
+            fig, axs = plt.subplots(num_filas, num_cols, figsize=(20, 20))
+            axs = axs.flatten() if num_planos_total > 1 else [axs]
+
+            planos_V2 = []
+
+            for i, plano in enumerate(planos_seleccionados):
+                for reflejado, label in [(plano, "original"), (reflejar_plano(plano), "reflejado")]:
+                    idx = i * 2 if label == "original" else i * 2 + 1
+
+                    dormitorios, baños, otras = [], [], []
+
+                    for hab in reflejado.habitaciones:
+                        cx = sum(x for x, _ in hab.vertices) / len(hab.vertices)
+                        cy = sum(y for _, y in hab.vertices) / len(hab.vertices)
+                        nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura, CLASIFICACIONES_V2)
+
+                        if nombre_funcional == "Dor":
+                            dormitorios.append((hab, cx, cy))
+                        elif nombre_funcional == "Baño":
+                            baños.append((hab, cx, cy))
+                        else:
+                            otras.append((hab, cx, cy, nombre_funcional))
+
+                    dormitorios.sort(key=lambda x: (x[2], x[1]))
+                    baños.sort(key=lambda x: (x[2], x[1]))
+
+                    for idx_hab, (hab, cx, cy) in enumerate(dormitorios, 1):
+                        axs[idx].add_patch(Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5))
+                        axs[idx].text(cx, cy, f"{hab.nombre}\nDor {idx_hab}", ha='center', va='center', fontsize=12)
+
+                    for idx_hab, (hab, cx, cy) in enumerate(baños, 1):
+                        axs[idx].add_patch(Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5))
+                        axs[idx].text(cx, cy, f"{hab.nombre}\nBaño {idx_hab}", ha='center', va='center', fontsize=12)
+
+                    for hab, cx, cy, nombre_funcional in otras:
+                        axs[idx].add_patch(Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5))
+                        axs[idx].text(cx, cy, f"{hab.nombre}\n{nombre_funcional}", ha='center', va='center', fontsize=12)
+
+                    axs[idx].set_xlim(0, plano.largo)
+                    axs[idx].set_ylim(0, plano.ancho)
+                    axs[idx].set_title(f"Plano {idx + 1}", fontsize=14)
+                    axs[idx].set_aspect('equal', adjustable='box')
+
+                    planos_V2.append(reflejado if label == "reflejado" else plano)
+
+            # Ocultar subplots vacíos
+            for j in range(len(planos_V2), len(axs)):
+                axs[j].axis('off')
+
+            plt.tight_layout()
+            st.pyplot(fig)
+
+            # Guardar para uso posterior
+            st.session_state.planos_v2 = planos_V2
             st.session_state.planos_v2_generados = True
 
     return st.session_state.planos_v2
+
 
 
 
