@@ -363,44 +363,50 @@ def generar_planos_v1():
             
     return st.session_state.planos_generados
 
+
 def generar_planos_v2(plano_seleccionado_v1):
     if not st.session_state.planos_v2_generados:
         with st.spinner("Generando planos V2..."):
             planos_v2 = []
 
-            # 1. Crear una copia SIN la habitación P5, sin reutilizar objetos ya desplazados
-            casa_base = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
+            # Paso 1: crear copia limpia de habitaciones V1 sin P5
+            habitaciones_base = []
             for hab in plano_seleccionado_v1.habitaciones:
                 if hab.nombre != "P5":
-                    nueva_hab = Habitacion(hab.nombre, hab.vertices.copy())  # evitar usar objetos con offset
-                    casa_base.habitaciones.append(nueva_hab)
+                    nueva_vertices = [(x, y) for x, y in hab.vertices]
+                    habitaciones_base.append(Habitacion(hab.nombre, nueva_vertices))
 
-            # 2. Generar dos variantes de casa V2
-            casas_v2_generadas = []
+            # Paso 2: calcular altura máxima alcanzada por las habitaciones V1
+            y_max = max(y for hab in habitaciones_base for _, y in hab.vertices)
+
+            # Paso 3: generar dos variantes de planos con habitaciones nuevas encima
+            casas_v2 = []
 
             # Variante 1
             casa1 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 1")
-            casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
-            casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
-            casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
-            for hab in casa_base.habitaciones:
-                casa1.agregar_habitacion(Habitacion(hab.nombre, hab.vertices.copy()))
-            casas_v2_generadas.append(casa1)
+            casa1.agregar_habitacion(Habitacion("P7", [(0, y_max), (2.585, y_max), (2.585, y_max + 3.915), (0, y_max + 3.915)]))
+            casa1.agregar_habitacion(Habitacion("P6", [(2.585, y_max), (4.880, y_max), (4.880, y_max + 2.43), (2.585, y_max + 2.43)]))
+            casa1.agregar_habitacion(Habitacion("P8", [(2.585, y_max + 2.44), (4.880, y_max + 2.44), (4.880, y_max + 3.915), (2.585, y_max + 3.915)]))
+
+            for hab in habitaciones_base:
+                casa1.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
+            casas_v2.append(casa1)
 
             # Variante 2
             casa2 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 2")
-            casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
-            casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
-            casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
-            for hab in casa_base.habitaciones:
-                casa2.agregar_habitacion(Habitacion(hab.nombre, hab.vertices.copy()))
-            casas_v2_generadas.append(casa2)
+            casa2.agregar_habitacion(Habitacion("P6", [(0, y_max), (2.295, y_max), (2.295, y_max + 2.433), (0, y_max + 2.433)]))
+            casa2.agregar_habitacion(Habitacion("P8", [(0, y_max + 2.433), (2.295, y_max + 2.433), (2.295, y_max + 4.154), (0, y_max + 4.154)]))
+            casa2.agregar_habitacion(Habitacion("P7", [(2.295, y_max), (4.880, y_max), (4.880, y_max + 4.154), (2.295, y_max + 4.154)]))
 
-            # 3. Filtrar por restricciones espaciales
-            planos_filtrados = [casa for casa in casas_v2_generadas if cumple_restricciones_espaciales(casa, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
+            for hab in habitaciones_base:
+                casa2.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
+            casas_v2.append(casa2)
 
-            # 4. Reflejar planos válidos y guardarlos
-            for plano in planos_filtrados:
+            # Paso 4: aplicar restricciones espaciales
+            planos_validos = [plano for plano in casas_v2 if cumple_restricciones_espaciales(plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
+
+            # Paso 5: reflejar y almacenar planos
+            for plano in planos_validos:
                 planos_v2.append(plano)
                 planos_v2.append(reflejar_plano(plano))
 
