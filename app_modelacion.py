@@ -384,9 +384,9 @@ def generar_planos_v2(plano_seleccionado_v1):
 
             # Variante 1
             casa1 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 1")
-            casa1.agregar_habitacion(Habitacion("P7", [(0, y_max), (2.585, y_max), (2.585, y_max + 3.915), (0, y_max + 3.915)]))
-            casa1.agregar_habitacion(Habitacion("P6", [(2.585, y_max), (4.880, y_max), (4.880, y_max + 2.43), (2.585, y_max + 2.43)]))
-            casa1.agregar_habitacion(Habitacion("P8", [(2.585, y_max + 2.44), (4.880, y_max + 2.44), (4.880, y_max + 3.915), (2.585, y_max + 3.915)]))
+            casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+            casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+            casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
 
             for hab in habitaciones_base:
                 casa1.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
@@ -394,9 +394,9 @@ def generar_planos_v2(plano_seleccionado_v1):
 
             # Variante 2
             casa2 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 2")
-            casa2.agregar_habitacion(Habitacion("P6", [(0, y_max), (2.295, y_max), (2.295, y_max + 2.433), (0, y_max + 2.433)]))
-            casa2.agregar_habitacion(Habitacion("P8", [(0, y_max + 2.433), (2.295, y_max + 2.433), (2.295, y_max + 4.154), (0, y_max + 4.154)]))
-            casa2.agregar_habitacion(Habitacion("P7", [(2.295, y_max), (4.880, y_max), (4.880, y_max + 4.154), (2.295, y_max + 4.154)]))
+            casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+            casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+            casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
 
             for hab in habitaciones_base:
                 casa2.agregar_habitacion(Habitacion(hab.nombre, [(x, y) for x, y in hab.vertices]))
