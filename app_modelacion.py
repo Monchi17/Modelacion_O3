@@ -35,11 +35,9 @@ CLASIFICACIONES_V1 = [
 
 RESTRICCIONES_ESPACIALES_V1 = {
     ("Baño", "Dor"),
-    #("Cocina", "Comedor"),
     ("Estar", "Recibidor"),
     ("Recibidor", "Cocina - Comedor"),
-    ("Estar", "Cocina - Comedor"),
-}
+    ("Estar", "Cocina - Comedor"),}
 
 # Clasificación para V2
 CLASIFICACIONES_V2 = [
@@ -65,7 +63,7 @@ class Habitacion:
         x_vals = [x for x, y in vertices]
         y_vals = [y for x, y in vertices]
         self.ancho = round(max(x_vals) - min(x_vals), 3)
-        self.altura = round(max(y_vals) - min(y_vals), 3)
+        self.altura = round(max(y_vals) - min(y_vals), 3)        
 
     def area(self):
         x, y = zip(*self.vertices)
@@ -85,28 +83,24 @@ class Casa:
         self.tipo = tipo
 
     def agregar_habitacion(self, habitacion):
-        if hasattr(self, 'area_total'):  # Para V1
-            if self.area_usada + habitacion.area() <= self.area_total:
-                if self.posicion_x + habitacion.ancho > self.largo:
-                    self.posicion_x = 0
-                    self.posicion_y += self.altura_fila_actual
-                    self.altura_fila_actual = 0
+        if self.area_usada + habitacion.area() <= self.area_total:
+            if self.posicion_x + habitacion.ancho > self.largo:
+                self.posicion_x = 0
+                self.posicion_y += self.altura_fila_actual
+                self.altura_fila_actual = 0
 
-                vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
-                habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
-                self.habitaciones.append(habitacion_desplazada)
-                self.area_usada += habitacion.area()
+            vertices_desplazados = [(x + self.posicion_x, y + self.posicion_y) for x, y in habitacion.vertices]
+            habitacion_desplazada = Habitacion(habitacion.nombre, vertices_desplazados)
+            self.habitaciones.append(habitacion_desplazada)
+            self.area_usada += habitacion.area()
 
-                self.posicion_x += habitacion.ancho
-                self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
+            self.posicion_x += habitacion.ancho
+            self.altura_fila_actual = max(self.altura_fila_actual, habitacion.altura)
 
-                if self.posicion_y + self.altura_fila_actual > self.ancho:
-                    return False
-                return True
-            return False
-        else:  # Para V2
-            self.habitaciones.append(habitacion)
+            if self.posicion_y + self.altura_fila_actual > self.ancho:
+                return False
             return True
+        return False
 
     def agregar_habitacion_inferior(self, habitacion_final):
         if self.posicion_y + self.altura_fila_actual + habitacion_final.altura <= self.ancho:
@@ -164,57 +158,47 @@ class Casa:
     # Versión para Streamlit de V2
     def visualizar_plano_v2(self):
         fig, ax = plt.subplots(figsize=(6, 6))
-        dormitorios = []
-        baños = []
-        otras_habitaciones = []
-        
         for hab in self.habitaciones:
+            poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
+            ax.add_patch(poligono)
             cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
             cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
-            nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura, CLASIFICACIONES_V2)
-            
-            if nombre_funcional == "Dor":
-                dormitorios.append((hab, cx, cy))
-            elif nombre_funcional == "Baño":
-                baños.append((hab, cx, cy))
-            else:
-                otras_habitaciones.append((hab, cx, cy, nombre_funcional))
-        
-        # Ordenar dormitorios
-        dormitorios.sort(key=lambda x: (x[2], x[1]))
-        
-        # Ordenar baños
-        baños.sort(key=lambda x: (x[2], x[1]))
-        
-        # Dibujar dormitorios numerados
-        for idx, (hab, cx, cy) in enumerate(dormitorios, 1):
-            poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
-            ax.add_patch(poligono)
-            ax.text(cx, cy, f"{hab.nombre}\nDor {idx}", ha='center', va='center', fontsize=10)
-        
-        # Dibujar baños numerados
-        for idx, (hab, cx, cy) in enumerate(baños, 1):
-            poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
-            ax.add_patch(poligono)
-            ax.text(cx, cy, f"{hab.nombre}\nBaño {idx}", ha='center', va='center', fontsize=10)
-        
-        # Dibujar otras habitaciones
-        for hab, cx, cy, nombre_funcional in otras_habitaciones:
-            poligono = Polygon(hab.vertices, closed=True, fill=True, edgecolor='black', alpha=0.5)
-            ax.add_patch(poligono)
-            ax.text(cx, cy, f"{hab.nombre}\n{nombre_funcional}", ha='center', va='center', fontsize=10)
-        
+
+            nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura)
+            ax.text(cx, cy, f"{hab.nombre}\n{nombre_funcional}", ha='center', va='center', fontsize=8)
+
         ax.set_xlim(0, self.largo)
         ax.set_ylim(0, self.ancho)
         ax.set_aspect('equal', adjustable='box')
-            
+        
         # Convertir el gráfico a una imagen para Streamlit
         buf = BytesIO()
         fig.savefig(buf, format='png', bbox_inches='tight')
         plt.close(fig)
         buf.seek(0)
         return buf
+        
+    def reflejar_habitacion(habitacion, largo_casa):
+    """Refleja una habitación respecto al eje Y sin cambiar su nombre"""
+        vertices_reflejados = []
+        for x, y in habitacion.vertices:
+            # Reflejar la coordenada x respecto al eje Y
+            x_reflejado = largo_casa - x
+            vertices_reflejados.append((x_reflejado, y))
+        
+        # Invertir el orden para mantener orientación correcta
+        vertices_reflejados.reverse()
+        
+        # Mantener el mismo nombre que la habitación original
+        return Habitacion(habitacion.nombre, vertices_reflejados)
 
+    def reflejar_plano(casa):
+        """Crea una reflexión completa de la casa respecto al eje Y"""
+        casa_reflejada = Casa(casa.largo, casa.ancho, casa.tipo)  # Mismo tipo que el original
+        for habitacion in casa.habitaciones:
+            casa_reflejada.agregar_habitacion(reflejar_habitacion(habitacion, casa.largo))
+        return casa_reflejada
+    todos_los_planos = []
 
 habitaciones_v1 = [Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]),
                    Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]),
@@ -312,37 +296,37 @@ def reflejar_plano(casa):
         casa_reflejada.agregar_habitacion(reflejar_habitacion(habitacion, casa.largo))
     return casa_reflejada
 
-def generar_planos_predefinidos():
-    planos = []
+# def generar_planos_predefinidos():
+#     planos = []
     
-    # Plano 1
-    casa1 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-    casa1.agregar_habitacion(Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]))
-    casa1.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-    planos.append(casa1)
+#     # Plano 1
+#     casa1 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
+#     casa1.agregar_habitacion(Habitacion("P1", [(0, 0), (3.529, 0), (3.529, 2.983), (0, 2.983)]))
+#     casa1.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
+#     planos.append(casa1)
     
-    # Plano 2
-    casa2 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-    casa2.agregar_habitacion(Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]))
-    casa2.agregar_habitacion(Habitacion("P3", [(1.351, 0), (3.936, 0), (3.936, 2.856), (1.351, 2.856)]))
-    casa2.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-    planos.append(casa2)
+#     # Plano 2
+#     casa2 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
+#     casa2.agregar_habitacion(Habitacion("P2", [(0, 0), (1.351, 0), (1.351, 2.983), (0, 2.983)]))
+#     casa2.agregar_habitacion(Habitacion("P3", [(1.351, 0), (3.936, 0), (3.936, 2.856), (1.351, 2.856)]))
+#     casa2.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
+#     planos.append(casa2)
     
-    # Plano 3
-    casa3 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-    casa3.agregar_habitacion(Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]))
-    casa3.agregar_habitacion(Habitacion("P2", [(2.295, 0), (3.646, 0), (3.646, 2.983), (2.295, 2.983)]))
-    casa3.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
-    planos.append(casa3)
+#     # Plano 3
+#     casa3 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
+#     casa3.agregar_habitacion(Habitacion("P4", [(0, 0), (2.295, 0), (2.295, 2.856), (0, 2.856)]))
+#     casa3.agregar_habitacion(Habitacion("P2", [(2.295, 0), (3.646, 0), (3.646, 2.983), (2.295, 2.983)]))
+#     casa3.agregar_habitacion(Habitacion("P5", [(0, 2.983), (4.880, 2.983), (4.880, 4.464), (0, 4.464)]))
+#     planos.append(casa3)
     
-    # Plano 4
-    casa4 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
-    casa4.agregar_habitacion(Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]))
-    casa4.agregar_habitacion(Habitacion("P4", [(2.585, 0), (4.880, 0), (4.880, 2.856), (2.585, 2.856)]))
-    casa4.agregar_habitacion(Habitacion("P5", [(0, 2.856), (4.880, 2.856), (4.880, 4.337), (0, 4.337)]))
-    planos.append(casa4)
+#     # Plano 4
+#     casa4 = Casa(largo=largo_casa_v1, ancho=ancho_casa_v1)
+#     casa4.agregar_habitacion(Habitacion("P3", [(0, 0), (2.585, 0), (2.585, 2.856), (0, 2.856)]))
+#     casa4.agregar_habitacion(Habitacion("P4", [(2.585, 0), (4.880, 0), (4.880, 2.856), (2.585, 2.856)]))
+#     casa4.agregar_habitacion(Habitacion("P5", [(0, 2.856), (4.880, 2.856), (4.880, 4.337), (0, 4.337)]))
+#     planos.append(casa4)
     
-    return planos
+#     return planos
 
 def seleccionar_plano(index):
     st.session_state.plano_seleccionado = index
