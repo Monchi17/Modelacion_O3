@@ -520,7 +520,7 @@ elif st.session_state.etapa == 'V2':
         # Agregar todas las habitaciones excepto P5
         for habitacion in st.session_state.plano_v1_seleccionado.habitaciones:
             if habitacion.nombre != "P5":
-                casa_sin_p5.agregar_habitacion(habitacion)
+                casa_aqui.agregar_habitacion(habitacion)
                 
         # Generar planos V2
         todos_los_planos = []
