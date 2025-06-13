@@ -515,12 +515,12 @@ elif st.session_state.etapa == 'V2':
     # Generar planos V2 basados en el plano seleccionado
     with st.spinner("Generando planos V2..."):
         # Crear una nueva casa sin la habitación P5
-        casa_aqui = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
+        casa_sin_p5 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
         
         # Agregar todas las habitaciones excepto P5
         for habitacion in st.session_state.plano_v1_seleccionado.habitaciones:
             if habitacion.nombre != "P5":
-                casa_aqui.agregar_habitacion(habitacion)
+                casa_sin_p5.agregar_habitacion(habitacion)
                 
         # Generar planos V2
         todos_los_planos = []
