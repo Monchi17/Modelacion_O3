@@ -552,7 +552,7 @@ elif st.session_state.etapa == 'V2':
         casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
         casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
         for hab in casa_sin_p5.habitaciones:
-            casa2.habitacion.append(hab)
+            casa2.habitaciones.append(hab)
         todos_los_planos.append(casa2)
         
         # Asegurarnos de tener planos para mostrar
