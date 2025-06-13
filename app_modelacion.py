@@ -330,31 +330,46 @@ def quitar_p5_de_planos(planos_v1):
 
 def generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa, ancho_casa):
     todos_los_planos = []
-
-    for casa_base in combinaciones_sin_p5:
-        casa1 = Casa(largo_casa, ancho_casa, tipo="Tipo 1")
-        casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
-        casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
-        casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
     
-        # Copiar directamente las habitaciones de V1 (ya posicionadas)
-        for hab in casa_base.habitaciones:
-            copia = Habitacion(hab.nombre, hab.vertices[:])  # Copia profunda de vértices
-            casa1.habitaciones.append(copia)
-
-        todos_los_planos.append(casa1)
-
-        # Plano V2 - Variante 2
-        casa2 = Casa(largo_casa, ancho_casa, tipo="Tipo 2")
-        casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
-        casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
-        casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+    for i in range(len(combinaciones_sin_p5)):
+    casa1 = Casa(largo_casa, ancho_casa)
+    casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+    casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+    casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+    casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+    todos_los_planos.append(casa1)
     
-        for hab in casa_base.habitaciones:
-            copia = Habitacion(hab.nombre, hab.vertices[:])  # Copia profunda
-            casa2.habitaciones.append(copia)
+    casa2 = Casa(largo_casa, ancho_casa)
+    casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+    casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+    casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+    casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+    todos_los_planos.append(casa2)
 
-        todos_los_planos.append(casa2)
+    # for casa_base in combinaciones_sin_p5:
+    #     casa1 = Casa(largo_casa, ancho_casa, tipo="Tipo 1")
+    #     casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+    #     casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+    #     casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+    
+    #     # Copiar directamente las habitaciones de V1 (ya posicionadas)
+    #     for hab in casa_base.habitaciones:
+    #         copia = Habitacion(hab.nombre, hab.vertices[:])  # Copia profunda de vértices
+    #         casa1.habitaciones.append(copia)
+
+    #     todos_los_planos.append(casa1)
+
+    #     # Plano V2 - Variante 2
+    #     casa2 = Casa(largo_casa, ancho_casa, tipo="Tipo 2")
+    #     casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+    #     casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+    #     casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+    
+    #     for hab in casa_base.habitaciones:
+    #         copia = Habitacion(hab.nombre, hab.vertices[:])  # Copia profunda
+    #         casa2.habitaciones.append(copia)
+
+    #     todos_los_planos.append(casa2)
 
     return todos_los_planos
 
@@ -364,10 +379,30 @@ def generar_planos_v2():
             plano_v1_seleccionado = st.session_state.plano_v1_seleccionado
 
             # Paso 1: quitar habitación P5
-            planos_sin_p5 = quitar_p5_de_planos([plano_v1_seleccionado])
+            combinaciones_sin_p5 = []
+            for casa in planos_aleatorios:  # Cambiar combinaciones por planos_aleatorios
+                # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
+                nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
+                
+                # Agregar todas las habitaciones excepto la que corresponde a "P5"
+                for habitacion in casa.habitaciones:
+                    if habitacion.nombre != "P5":
+                        nueva_casa.habitaciones.append(habitacion)
+                
+                # Copiar el área usada y otras variables necesarias
+                nueva_casa.area_usada = sum(hab.area() for hab in nueva_casa.habitaciones)
+                nueva_casa.posicion_x = casa.posicion_x
+                nueva_casa.posicion_y = casa.posicion_y
+                nueva_casa.altura_fila_actual = casa.altura_fila_actual
+            
+                # Añadir la nueva casa a la lista
+                combinaciones_sin_p5.append(nueva_casa)
+                
+            #planos_sin_p5 = quitar_p5_de_planos([plano_v1_seleccionado])
 
             # Paso 2: generar planos V2
-            todos_los_planos = generar_planos_v2_desde_v1_sin_p5(planos_sin_p5, largo_casa_v2, ancho_casa_v2)
+            #todos_los_planos = generar_planos_v2_desde_v1_sin_p5(planos_sin_p5, largo_casa_v2, ancho_casa_v2)
+            todos_los_planos = generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa_v2, ancho_casa_v2)
 
             # Paso 3: aplicar restricciones
             planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(
