@@ -377,7 +377,8 @@ def generar_planos_v2():
                 planos_filtrados = todos_los_planos
 
             planos_seleccionados = planos_filtrados.copy()
-
+            planos_v2 =[]
+            
             # Paso 4: generar visualización con subplots (como en matplotlib original)
             num_planos_total = len(planos_seleccionados) * 2  # Original + reflejado
             num_cols = min(2, num_planos_total)
@@ -385,7 +386,6 @@ def generar_planos_v2():
 
             fig, axs = plt.subplots(num_filas, num_cols, figsize=(20, 20))
             axs = axs.flatten() if num_planos_total > 1 else [axs]
-            planos_v2 =[]
 
             for i, plano in enumerate(planos_seleccionados):
                 for reflejado, label in [(plano, "original"), (reflejar_plano(plano), "reflejado")]:
