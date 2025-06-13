@@ -385,6 +385,7 @@ def generar_planos_v2():
 
             fig, axs = plt.subplots(num_filas, num_cols, figsize=(20, 20))
             axs = axs.flatten() if num_planos_total > 1 else [axs]
+            planos_v2 =[]
 
             for i, plano in enumerate(planos_seleccionados):
                 for reflejado, label in [(plano, "original"), (reflejar_plano(plano), "reflejado")]:
