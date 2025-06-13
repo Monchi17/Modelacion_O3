@@ -377,12 +377,9 @@ def generar_planos_v2():
             fig, axs = plt.subplots(num_filas, num_cols, figsize=(20, 20))
             axs = axs.flatten() if num_planos_total > 1 else [axs]
 
-            planos_V2 = []
-
             for i, plano in enumerate(planos_seleccionados):
                 for reflejado, label in [(plano, "original"), (reflejar_plano(plano), "reflejado")]:
                     idx = i * 2 if label == "original" else i * 2 + 1
-
                     dormitorios, baños, otras = [], [], []
 
                     for hab in reflejado.habitaciones:
@@ -431,10 +428,6 @@ def generar_planos_v2():
             st.session_state.planos_v2_generados = True
 
     return st.session_state.planos_v2
-
-
-
-
 
 def mostrar_planos_v1(planos):
     # Crear 4 columnas para los planos
