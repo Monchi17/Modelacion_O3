@@ -532,7 +532,7 @@ elif st.session_state.etapa == 'V2':
         casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
         casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
         for hab in casa_sin_p5.habitaciones:
-            casa1.agregar_habitacion(hab)
+            casa1.habitaciones.append
         todos_los_planos.append(casa1)
         
         # Segundo tipo de distribución
@@ -541,7 +541,7 @@ elif st.session_state.etapa == 'V2':
         casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
         casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
         for hab in casa_sin_p5.habitaciones:
-            casa2.agregar_habitacion(hab)
+            casa2.habitacion.append(hab)
         todos_los_planos.append(casa2)
         
         # Asegurarnos de tener planos para mostrar
