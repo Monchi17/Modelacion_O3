@@ -332,7 +332,6 @@ def generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa, ancho_ca
     todos_los_planos = []
 
     for casa_base in combinaciones_sin_p5:
-        # Plano V2 - Variante 1
         casa1 = Casa(largo_casa, ancho_casa, tipo="Tipo 1")
         casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
         casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
@@ -523,52 +522,9 @@ elif st.session_state.etapa == 'V2':
         st.error("No hay plano seleccionado de la etapa V1. Volviendo a la selección...")
         st.session_state.etapa = 'V1'
         st.rerun()
-    
-    # Generar planos V2 basados en el plano seleccionado
-    with st.spinner("Generando planos V2..."):
-        # Crear una nueva casa sin la habitación P5
-        casa_sin_p5 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2)
         
-        # Agregar todas las habitaciones excepto P5
-        for habitacion in st.session_state.plano_v1_seleccionado.habitaciones:
-            if habitacion.nombre != "P5":
-                casa_sin_p5.agregar_habitacion(habitacion)
-                
-        # Generar planos V2
-        todos_los_planos = []
+    planos_v2 = generar_planos_v2()
 
-        for hab in casa_sin_p5.habitaciones:
-            casa1 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 1")
-            casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
-            casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
-            casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
-            casa1.habitaciones.extend(casa_base.habitaciones)
-            todos_los_planos.append(casa1)
-        
-        # Segundo tipo de distribución
-        for hab in casa_sin_p5.habitaciones:
-            casa2 = Casa(largo=largo_casa_v2, ancho=ancho_casa_v2, tipo="Tipo 2")
-            casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
-            casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
-            casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
-            casa2.habitaciones.extend(casa_base.habitaciones)
-            todos_los_planos.append(casa2)
-        
-        # Asegurarnos de tener planos para mostrar
-        planos_v2 = []
-        # Intentar filtrar planos que cumplen restricciones
-        planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
-        
-        # Si no hay planos que cumplan las restricciones, usar los planos sin filtrar
-        if not planos_filtrados:
-            st.warning("Ningún plano cumple las restricciones espaciales. Mostrando todos los planos.")
-            planos_filtrados = todos_los_planos
-        
-        # Generar planos reflejados
-        for plano in planos_filtrados:
-            planos_v2.append(plano)  # Plano original
-            planos_v2.append(reflejar_plano(plano))  # Plano reflejado
-    
     # Mostrar los planos V2
     if planos_v2:
         st.write("Selecciona uno de los planos disponibles:")
