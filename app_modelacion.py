@@ -179,7 +179,6 @@ class Casa:
         return buf
         
     def reflejar_habitacion(habitacion, largo_casa):
-    """Refleja una habitación respecto al eje Y sin cambiar su nombre"""
         vertices_reflejados = []
         for x, y in habitacion.vertices:
             # Reflejar la coordenada x respecto al eje Y
@@ -276,7 +275,6 @@ def generar_combinaciones(habitaciones):
     return combinaciones_validas
 
 def reflejar_habitacion(habitacion, largo_casa):
-    """Refleja una habitación respecto al eje Y sin cambiar su nombre"""
     vertices_reflejados = []
     for x, y in habitacion.vertices:
         # Reflejar la coordenada x respecto al eje Y
