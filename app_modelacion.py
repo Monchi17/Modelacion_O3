@@ -164,7 +164,8 @@ class Casa:
             cx = sum([v[0] for v in hab.vertices]) / len(hab.vertices)
             cy = sum([v[1] for v in hab.vertices]) / len(hab.vertices)
 
-            nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura)
+            nombre_funcional = obtener_nombre_funcional_por_rango(hab.ancho, hab.altura, CLASIFICACIONES_V2)
+
             ax.text(cx, cy, f"{hab.nombre}\n{nombre_funcional}", ha='center', va='center', fontsize=8)
 
         ax.set_xlim(0, self.largo)
