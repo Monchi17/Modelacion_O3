@@ -354,6 +354,8 @@ def generar_planos_v2():
 
             # Paso 1: quitar habitación P5
             combinaciones_sin_p5 = []
+            planos_aleatorios = st.session_state.planos_generados
+
             for casa in planos_aleatorios:  # Cambiar combinaciones por planos_aleatorios
                 # Crear una nueva instancia de Casa para almacenar la combinación sin "P5"
                 nueva_casa = Casa(largo=casa.largo, ancho=casa.ancho)
