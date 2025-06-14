@@ -412,7 +412,7 @@ def generar_planos_v2():
                 casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
                 todos_los_planos.append(casa2)
             
-            planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano)]
+            planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
             planos_seleccionados = planos_filtrados.copy()
 
             # todos_los_planos = generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa_v2, ancho_casa_v2)
