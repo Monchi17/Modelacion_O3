@@ -371,22 +371,59 @@ def generar_planos_v2():
             
                 # Añadir la nueva casa a la lista
                 combinaciones_sin_p5.append(nueva_casa)
-                
-            #planos_sin_p5 = quitar_p5_de_planos([plano_v1_seleccionado])
 
             # Paso 2: generar planos V2
-            #todos_los_planos = generar_planos_v2_desde_v1_sin_p5(planos_sin_p5, largo_casa_v2, ancho_casa_v2)
-            todos_los_planos = generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa_v2, ancho_casa_v2)
-
-            # Paso 3: aplicar restricciones
-            planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(
-                plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
-            if not planos_filtrados:
-                st.warning("Ningún plano V2 cumple con las restricciones. Mostrando todos los disponibles.")
-                planos_filtrados = todos_los_planos
-
+            def reflejar_habitacion(habitacion, largo_casa):
+                """Refleja una habitación respecto al eje Y sin cambiar su nombre"""
+                vertices_reflejados = []
+                for x, y in habitacion.vertices:
+                    # Reflejar la coordenada x respecto al eje Y
+                    x_reflejado = largo_casa - x
+                    vertices_reflejados.append((x_reflejado, y))
+                
+                # Invertir el orden para mantener orientación correcta
+                vertices_reflejados.reverse()
+                
+                # Mantener el mismo nombre que la habitación original
+                return Habitacion(habitacion.nombre, vertices_reflejados)
+            
+            def reflejar_plano(casa):
+                """Crea una reflexión completa de la casa respecto al eje Y"""
+                casa_reflejada = Casa(casa.largo, casa.ancho, casa.tipo)  # Mismo tipo que el original
+                for habitacion in casa.habitaciones:
+                    casa_reflejada.agregar_habitacion(reflejar_habitacion(habitacion, casa.largo))
+                return casa_reflejada
+            
+            todos_los_planos = []
+            for i in range(len(combinaciones_sin_p5)):
+                casa1 = Casa(largo_casa, ancho_casa)
+                casa1.agregar_habitacion(Habitacion("P7", [(0, 5.850), (2.585, 5.850), (2.585, 9.765), (0, 9.765)]))
+                casa1.agregar_habitacion(Habitacion("P6", [(2.585, 5.850), (4.880, 5.850), (4.880, 8.280), (2.585, 8.280)]))
+                casa1.agregar_habitacion(Habitacion("P8", [(2.585, 8.290), (4.880, 8.290), (4.880, 9.765), (2.585, 9.765)]))
+                casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+                todos_los_planos.append(casa1)
+                
+                casa2 = Casa(largo_casa, ancho_casa)
+                casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
+                casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
+                casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
+                casa2.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
+                todos_los_planos.append(casa2)
+            
+            planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(plano)]
             planos_seleccionados = planos_filtrados.copy()
-            planos_V2 =[]
+
+            # todos_los_planos = generar_planos_v2_desde_v1_sin_p5(combinaciones_sin_p5, largo_casa_v2, ancho_casa_v2)
+
+            # # Paso 3: aplicar restricciones
+            # planos_filtrados = [plano for plano in todos_los_planos if cumple_restricciones_espaciales(
+            #     plano, CLASIFICACIONES_V2, RESTRICCIONES_ESPACIALES_V2)]
+            # if not planos_filtrados:
+            #     st.warning("Ningún plano V2 cumple con las restricciones. Mostrando todos los disponibles.")
+            #     planos_filtrados = todos_los_planos
+
+            # planos_seleccionados = planos_filtrados.copy()
+            # planos_V2 =[]
             
             # Paso 4: generar visualización con subplots (como en matplotlib original)
             num_planos_total = len(planos_seleccionados) * 2  # Original + reflejado
