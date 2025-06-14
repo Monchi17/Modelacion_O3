@@ -425,7 +425,7 @@ def generar_planos_v2():
             #     planos_filtrados = todos_los_planos
 
             # planos_seleccionados = planos_filtrados.copy()
-            # planos_V2 =[]
+            planos_V2 =[]
             
             # Paso 4: generar visualización con subplots (como en matplotlib original)
             num_planos_total = len(planos_seleccionados) * 2  # Original + reflejado
