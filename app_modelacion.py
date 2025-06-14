@@ -405,7 +405,7 @@ def generar_planos_v2():
                 casa1.habitaciones.extend(combinaciones_sin_p5[i].habitaciones)
                 todos_los_planos.append(casa1)
                 
-                casa2 = Casa(largo_casa, ancho_casa)
+                casa2 = Casa(largo_casa_v2, ancho_casa_v2)
                 casa2.agregar_habitacion(Habitacion("P6", [(0, 5.839), (2.295, 5.839), (2.295, 8.272), (0, 8.272)]))
                 casa2.agregar_habitacion(Habitacion("P8", [(0, 8.272), (2.295, 8.272), (2.295, 9.759), (0, 9.759)]))
                 casa2.agregar_habitacion(Habitacion("P7", [(2.295, 5.839), (4.880, 5.839), (4.880, 9.759), (2.295, 9.759)]))
