@@ -167,7 +167,7 @@ if df is not None:
                     datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
                     
                     with cols[j]:
-                        st.write(f"### Plano {plano_id}")
+                        #st.write(f"### Plano {plano_id}")
                         
                         # # Mostrar información básica utilizando get_safe
                         # col1, col2, col3 = st.columns(3)
