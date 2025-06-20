@@ -24,7 +24,6 @@ def cargar_datos_excel():
         st.error(f"No se encontró el archivo {EXCEL_PATH}. Asegúrate de que esté en el mismo directorio que la aplicación.")
         return None
 
-# Función para acceder a los datos con seguridad
 def get_safe(data, key, default="N/A"):
     try:
         if key in data and pd.notna(data[key]):
@@ -108,14 +107,17 @@ if df is not None:
     if 'Version' in df.columns:
         versiones = sorted(df['Version'].unique())
         version_seleccionada = st.selectbox("Seleccionar versión:", versiones)
+        
+        # Filtrar datos para la versión seleccionada
         df_filtrado = df[df['Version'] == version_seleccionada]
         
         # Mostrar todos los planos de la versión seleccionada
         st.subheader(f"Todos los planos de la versión {version_seleccionada}")
         
-        # Agrupar planos en filas de 2
+        # Obtener todos los planos de esta versión
         planos_ids = sorted(df_filtrado['Plano_ID'].unique())
         
+        # Mostrar los planos en filas de 2 columnas
         for i in range(0, len(planos_ids), 2):
             cols = st.columns(2)
             
@@ -140,29 +142,10 @@ if df is not None:
                             st.metric("Habitaciones", num_hab)
                         
                         # Visualizar plano
-                        titulo = f"Plano {plano_id} (Versión {version_seleccionada})"
+                        titulo = f"Plano {plano_id}"
                         fig = visualizar_plano(datos_plano, titulo)
                         if fig:
                             st.pyplot(fig)
-                        
-                        # Mostrar detalles de habitaciones como una tabla expandible
-                        with st.expander("Ver habitaciones"):
-                            try:
-                                habitaciones = json.loads(datos_plano.get('Datos_Habitaciones', '[]'))
-                                if habitaciones:
-                                    tabla_data = []
-                                    for hab in habitaciones:
-                                        tabla_data.append({
-                                            "Nombre": hab.get('Nombre', 'Sin nombre'),
-                                            "Tipo": hab.get('Tipo_Funcional', 'Desconocido'),
-                                            "Ancho (m)": f"{hab.get('Ancho', 0):.2f}",
-                                            "Altura (m)": f"{hab.get('Altura', 0):.2f}"
-                                        })
-                                    st.table(pd.DataFrame(tabla_data))
-                                else:
-                                    st.info("No hay datos de habitaciones disponibles")
-                            except Exception as e:
-                                st.error(f"Error al mostrar detalles: {e}")
     else:
         st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
 else:
