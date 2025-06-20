@@ -183,7 +183,7 @@ if df is not None:
                         
                         # Visualizar plano
                         titulo = f"Plano {plano_id}"
-                        fig = visualizar_plano(datos_plano, titulo)
+                        fig = visualizar_plano(datos_plano, titulo,version_seleccionada)
                         if fig:
                             st.pyplot(fig)
     else:
