@@ -71,7 +71,7 @@ def visualizar_plano(datos_plano, titulo, version):
             'Cocina - Comedor': 'lightsalmon',
             'Estar': 'lightyellow',
             'Recibidor': 'lightpink'
-            'Cocina ': 'lightsalmon'
+            'Cocina': 'lightsalmon'
             'Comedor': 'lightsalmon'
             }
         
