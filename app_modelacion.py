@@ -101,30 +101,38 @@ def visualizar_plano(datos_plano, titulo, version):
             # Añadir etiqueta con nombre y tipo
             ax.text(cx, cy, f"{nombre}\n{tipo}", ha='center', va='center', 
                    fontsize=10, fontweight='bold')
+
         
-        # # Configurar límites y aspecto
-        # if version == "v1":
-        #     largo_casa = 2.440 * 2
-        #     ancho_casa = 2.440 * 3
-        # elif version == "v2":
-        #     largo_casa = 2 * 2.440
-        #     ancho_casa = 4 * 2.440
-        # elif version == "v3":
-        #     largo_casa = 2.440 * 2
-        #     ancho_casa = 2.440 * 6
-        # elif version == "v4":
-        #     largo_casa = 2.440 * 3
-        #     ancho_casa = 2.440 * 6
-        # elif version == "v5":
-        #     largo_casa = 2.440 * 4
-        #     ancho_casa = 2.440 * 6
-        # else:
-        #     # Si no coincide con ninguna versión conocida, usar valores del Excel o valores por defecto
-        #     ancho_casa = datos_plano.get('Ancho_Casa', datos_plano.get('ancho_casa', 7.32))
-        #     largo_casa = datos_plano.get('Largo_Casa', datos_plano.get('largo_casa', 4.88))
+        # Configurar límites y aspecto
+        if version == "v1":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 3
+            ax.set_xlim(0, largo_casa)
+            ax.set_ylim(0, ancho_casa)
+        
+        elif version == "v2":
+            largo_casa = 2 * 2.440
+            ancho_casa = 4 * 2.440
+            ax.set_xlim(0, largo_casa)
+            ax.set_ylim(0, ancho_casa)
             
-        ax.set_xlim(0, largo_casa)
-        ax.set_ylim(0, ancho_casa)
+        elif version == "v3":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 6
+            ax.set_xlim(0, largo_casa)
+            ax.set_ylim(0, ancho_casa)
+            
+        elif version == "v4":
+            largo_casa = 2.440 * 3
+            ancho_casa = 2.440 * 6
+            ax.set_xlim(-2.440, 2.440*2)
+            ax.set_ylim(0, ancho_casa)
+        elif version == "v5":
+            largo_casa = 2.440 * 4
+            ancho_casa = 2.440 * 6
+            ax.set_xlim(-2.440*2, 2.440*2)
+            ax.set_ylim(0, ancho_casa)
+       
         ax.set_aspect('equal')
         ax.set_title(titulo, fontsize=16)
         ax.set_xlabel('Largo (m)')
