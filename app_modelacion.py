@@ -141,7 +141,7 @@ df = cargar_datos_excel()
 
 if df is not None:
     # Mostrar columnas para depuración
-    st.write("Columnas disponibles en el Excel:", list(df.columns))
+    #st.write("Columnas disponibles en el Excel:", list(df.columns))
     
     # Extraer versiones disponibles
     if 'Version' in df.columns:
