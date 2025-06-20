@@ -103,6 +103,26 @@ def visualizar_plano(datos_plano, titulo, version):
                    fontsize=10, fontweight='bold')
         
         # Configurar límites y aspecto
+        if version == "v1":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 3
+        elif version == "v2":
+            largo_casa = 2 * 2.440
+            ancho_casa = 4 * 2.440
+        elif version == "v3":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 6
+        elif version == "v4":
+            largo_casa = 2.440 * 3
+            ancho_casa = 2.440 * 6
+        elif version == "v5":
+            largo_casa = 2.440 * 4
+            ancho_casa = 2.440 * 6
+        else:
+            # Si no coincide con ninguna versión conocida, usar valores del Excel o valores por defecto
+            ancho_casa = datos_plano.get('Ancho_Casa', datos_plano.get('ancho_casa', 7.32))
+            largo_casa = datos_plano.get('Largo_Casa', datos_plano.get('largo_casa', 4.88))
+            
         ax.set_xlim(0, largo_casa)
         ax.set_ylim(0, ancho_casa)
         ax.set_aspect('equal')
