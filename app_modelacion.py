@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 st.set_page_config(page_title="Visualizador de Planos", layout="wide")
-st.title("Visualizador de Planos desde Excel")
+st.title("Visualizador de Planos")
 
 # Ruta al archivo Excel
 EXCEL_PATH = "planos_ploteo.xlsx"
@@ -32,17 +32,35 @@ def get_safe(data, key, default="N/A"):
     except:
         return default
 
-def visualizar_plano(datos_plano, titulo):
-    """Visualiza un plano a partir de sus datos"""
+def visualizar_plano(datos_plano, titulo, version):
+    """
+    Visualiza un plano a partir de sus datos, con dimensiones específicas según la versión
+    """
     try:
-        # Extraer dimensiones con manejo seguro
-        ancho_casa = datos_plano.get('Ancho_Casa', datos_plano.get('ancho_casa', 7.32))
-        largo_casa = datos_plano.get('Largo_Casa', datos_plano.get('largo_casa', 4.88))
+        # Establecer dimensiones según la versión
+        if version == "v1":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 3
+        elif version == "v2":
+            largo_casa = 2 * 2.440
+            ancho_casa = 4 * 2.440
+        elif version == "v3":
+            largo_casa = 2.440 * 2
+            ancho_casa = 2.440 * 6
+        elif version == "v4":
+            largo_casa = 2.440 * 3
+            ancho_casa = 2.440 * 6
+        elif version == "v5":
+            largo_casa = 2.440 * 4
+            ancho_casa = 2.440 * 6
+        else:
+            # Si no coincide con ninguna versión conocida, usar valores del Excel o valores por defecto
+            ancho_casa = datos_plano.get('Ancho_Casa', datos_plano.get('ancho_casa', 7.32))
+            largo_casa = datos_plano.get('Largo_Casa', datos_plano.get('largo_casa', 4.88))
         
         # Extraer información de habitaciones (como JSON)
         habitaciones_json = datos_plano.get('Datos_Habitaciones', '[]')
         habitaciones = json.loads(habitaciones_json)
-        
         # Crear figura
         fig, ax = plt.subplots(figsize=(10, 8))
         
@@ -53,7 +71,9 @@ def visualizar_plano(datos_plano, titulo):
             'Cocina - Comedor': 'lightsalmon',
             'Estar': 'lightyellow',
             'Recibidor': 'lightpink'
-        }
+            'Cocina ': 'lightsalmon'
+            'Comedor': 'lightsalmon'
+            }
         
         # Añadir cada habitación al plano
         for hab in habitaciones:
