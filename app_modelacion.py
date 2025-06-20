@@ -169,17 +169,17 @@ if df is not None:
                     with cols[j]:
                         st.write(f"### Plano {plano_id}")
                         
-                        # Mostrar información básica utilizando get_safe
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            ancho_valor = get_safe(datos_plano, 'Ancho_Casa', get_safe(datos_plano, 'ancho_casa'))
-                            st.metric("Ancho", ancho_valor)
-                        with col2:
-                            largo_valor = get_safe(datos_plano, 'Largo_Casa', get_safe(datos_plano, 'largo_casa'))
-                            st.metric("Largo", largo_valor)
-                        with col3:
-                            num_hab = datos_plano.get('Num_Habitaciones', "N/A")
-                            st.metric("Habitaciones", num_hab)
+                        # # Mostrar información básica utilizando get_safe
+                        # col1, col2, col3 = st.columns(3)
+                        # with col1:
+                        #     ancho_valor = get_safe(datos_plano, 'Ancho_Casa', get_safe(datos_plano, 'ancho_casa'))
+                        #     st.metric("Ancho", ancho_valor)
+                        # with col2:
+                        #     largo_valor = get_safe(datos_plano, 'Largo_Casa', get_safe(datos_plano, 'largo_casa'))
+                        #     st.metric("Largo", largo_valor)
+                        # with col3:
+                        #     num_hab = datos_plano.get('Num_Habitaciones', "N/A")
+                        #     st.metric("Habitaciones", num_hab)
                         
                         # Visualizar plano
                         titulo = f"Plano {plano_id}"
