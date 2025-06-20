@@ -9,7 +9,7 @@ import os
 st.set_page_config(page_title="Visualizador de Planos", layout="wide")
 st.title("Visualizador de Planos desde Excel")
 
-# Ruta al archivo Excel (asumiendo que está en el mismo directorio que la app)
+# Ruta al archivo Excel
 EXCEL_PATH = "planos_ploteo.xlsx"
 
 def cargar_datos_excel():
@@ -24,117 +24,150 @@ def cargar_datos_excel():
         st.error(f"No se encontró el archivo {EXCEL_PATH}. Asegúrate de que esté en el mismo directorio que la aplicación.")
         return None
 
+# Función para acceder a los datos con seguridad
+def get_safe(data, key, default="N/A"):
+    try:
+        if key in data and pd.notna(data[key]):
+            return f"{data[key]:.2f} m"
+        return default
+    except:
+        return default
+
 def visualizar_plano(datos_plano, titulo):
     """Visualiza un plano a partir de sus datos"""
-    # Extraer dimensiones
-    ancho_casa = datos_plano['Ancho_Casa']
-    largo_casa = datos_plano['Largo_Casa']
-    
-    # Extraer información de habitaciones (como JSON)
-    habitaciones_json = datos_plano['Datos_Habitaciones']
-    habitaciones = json.loads(habitaciones_json)
-    
-    # Crear figura
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Colores para diferentes tipos de habitaciones
-    colores = {
-        'Baño': 'lightblue',
-        'Dor': 'lightgreen',
-        'Cocina - Comedor': 'lightsalmon',
-        'Estar': 'lightyellow',
-        'Recibidor': 'lightpink'
-    }
-    
-    # Añadir cada habitación al plano
-    for hab in habitaciones:
-        nombre = hab['Nombre']
-        tipo = hab['Tipo_Funcional']
-        vertices = hab['Vertices']
+    try:
+        # Extraer dimensiones con manejo seguro
+        ancho_casa = datos_plano.get('Ancho_Casa', datos_plano.get('ancho_casa', 7.32))
+        largo_casa = datos_plano.get('Largo_Casa', datos_plano.get('largo_casa', 4.88))
         
-        # Obtener color según el tipo funcional o usar un color por defecto
-        color = colores.get(tipo, 'lightgray')
+        # Extraer información de habitaciones (como JSON)
+        habitaciones_json = datos_plano.get('Datos_Habitaciones', '[]')
+        habitaciones = json.loads(habitaciones_json)
         
-        # Crear polígono para la habitación
-        poligono = Polygon(vertices, closed=True, fill=True, facecolor=color, 
-                          edgecolor='black', linewidth=1.5, alpha=0.7)
-        ax.add_patch(poligono)
+        # Crear figura
+        fig, ax = plt.subplots(figsize=(10, 8))
         
-        # Calcular centro para el texto
-        vertices_array = np.array(vertices)
-        cx = np.mean(vertices_array[:, 0])
-        cy = np.mean(vertices_array[:, 1])
+        # Colores para diferentes tipos de habitaciones
+        colores = {
+            'Baño': 'lightblue',
+            'Dor': 'lightgreen',
+            'Cocina - Comedor': 'lightsalmon',
+            'Estar': 'lightyellow',
+            'Recibidor': 'lightpink'
+        }
         
-        # Añadir etiqueta con nombre y tipo
-        ax.text(cx, cy, f"{nombre}\n{tipo}", ha='center', va='center', 
-               fontsize=10, fontweight='bold')
-    
-    # Configurar límites y aspecto
-    ax.set_xlim(0, largo_casa)
-    ax.set_ylim(0, ancho_casa)
-    ax.set_aspect('equal')
-    ax.set_title(titulo, fontsize=16)
-    ax.set_xlabel('Largo (m)')
-    ax.set_ylabel('Ancho (m)')
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    return fig
+        # Añadir cada habitación al plano
+        for hab in habitaciones:
+            nombre = hab.get('Nombre', 'Sin nombre')
+            tipo = hab.get('Tipo_Funcional', 'Desconocido')
+            vertices = hab.get('Vertices', [])
+            
+            # Si no hay vértices, continuar al siguiente
+            if not vertices:
+                continue
+                
+            # Obtener color según el tipo funcional o usar un color por defecto
+            color = colores.get(tipo, 'lightgray')
+            
+            # Crear polígono para la habitación
+            poligono = Polygon(vertices, closed=True, fill=True, facecolor=color, 
+                              edgecolor='black', linewidth=1.5, alpha=0.7)
+            ax.add_patch(poligono)
+            
+            # Calcular centro para el texto
+            vertices_array = np.array(vertices)
+            cx = np.mean(vertices_array[:, 0])
+            cy = np.mean(vertices_array[:, 1])
+            
+            # Añadir etiqueta con nombre y tipo
+            ax.text(cx, cy, f"{nombre}\n{tipo}", ha='center', va='center', 
+                   fontsize=10, fontweight='bold')
+        
+        # Configurar límites y aspecto
+        ax.set_xlim(0, largo_casa)
+        ax.set_ylim(0, ancho_casa)
+        ax.set_aspect('equal')
+        ax.set_title(titulo, fontsize=16)
+        ax.set_xlabel('Largo (m)')
+        ax.set_ylabel('Ancho (m)')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        
+        return fig
+    except Exception as e:
+        st.error(f"Error al visualizar el plano: {e}")
+        return None
 
 # Cargar los datos
 df = cargar_datos_excel()
 
 if df is not None:
-    st.success(f"Archivo {EXCEL_PATH} cargado correctamente")
+    # Mostrar columnas para depuración
+    st.write("Columnas disponibles en el Excel:", list(df.columns))
     
     # Extraer versiones disponibles
     if 'Version' in df.columns:
-        versiones = df['Version'].unique()
+        versiones = sorted(df['Version'].unique())
         version_seleccionada = st.selectbox("Seleccionar versión:", versiones)
         df_filtrado = df[df['Version'] == version_seleccionada]
+        
+        # Mostrar todos los planos de la versión seleccionada
+        st.subheader(f"Todos los planos de la versión {version_seleccionada}")
+        
+        # Agrupar planos en filas de 2
+        planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+        
+        for i in range(0, len(planos_ids), 2):
+            cols = st.columns(2)
+            
+            for j in range(2):
+                if i+j < len(planos_ids):
+                    plano_id = planos_ids[i+j]
+                    datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+                    
+                    with cols[j]:
+                        st.write(f"### Plano {plano_id}")
+                        
+                        # Mostrar información básica utilizando get_safe
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            ancho_valor = get_safe(datos_plano, 'Ancho_Casa', get_safe(datos_plano, 'ancho_casa'))
+                            st.metric("Ancho", ancho_valor)
+                        with col2:
+                            largo_valor = get_safe(datos_plano, 'Largo_Casa', get_safe(datos_plano, 'largo_casa'))
+                            st.metric("Largo", largo_valor)
+                        with col3:
+                            num_hab = datos_plano.get('Num_Habitaciones', "N/A")
+                            st.metric("Habitaciones", num_hab)
+                        
+                        # Visualizar plano
+                        titulo = f"Plano {plano_id} (Versión {version_seleccionada})"
+                        fig = visualizar_plano(datos_plano, titulo)
+                        if fig:
+                            st.pyplot(fig)
+                        
+                        # Mostrar detalles de habitaciones como una tabla expandible
+                        with st.expander("Ver habitaciones"):
+                            try:
+                                habitaciones = json.loads(datos_plano.get('Datos_Habitaciones', '[]'))
+                                if habitaciones:
+                                    tabla_data = []
+                                    for hab in habitaciones:
+                                        tabla_data.append({
+                                            "Nombre": hab.get('Nombre', 'Sin nombre'),
+                                            "Tipo": hab.get('Tipo_Funcional', 'Desconocido'),
+                                            "Ancho (m)": f"{hab.get('Ancho', 0):.2f}",
+                                            "Altura (m)": f"{hab.get('Altura', 0):.2f}"
+                                        })
+                                    st.table(pd.DataFrame(tabla_data))
+                                else:
+                                    st.info("No hay datos de habitaciones disponibles")
+                            except Exception as e:
+                                st.error(f"Error al mostrar detalles: {e}")
     else:
-        df_filtrado = df
-        version_seleccionada = "Única"
-    
-    # Seleccionar plano por ID
-    planos_ids = sorted(df_filtrado['Plano_ID'].unique())
-    plano_seleccionado = st.selectbox("Seleccionar plano:", planos_ids)
-    
-    # Filtrar para obtener los datos del plano seleccionado
-    datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_seleccionado].iloc[0]
-    
-    # Mostrar información básica del plano
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Ancho", f"{datos_plano['Ancho_Casa']:.2f} m")
-    with col2:
-        st.metric("Largo", f"{datos_plano['Largo_Casa']:.2f} m")
-    with col3:
-        st.metric("Habitaciones", datos_plano['Num_Habitaciones'])
-    
-    # Visualizar plano
-    titulo = f"Plano {plano_seleccionado} (Versión {version_seleccionada})"
-    fig = visualizar_plano(datos_plano, titulo)
-    st.pyplot(fig)
-    
-    # Mostrar datos de habitaciones
-    with st.expander("Ver detalles de habitaciones"):
-        habitaciones = json.loads(datos_plano['Datos_Habitaciones'])
-        
-        # Crear tabla de habitaciones
-        tabla_data = []
-        for hab in habitaciones:
-            tabla_data.append({
-                "Nombre": hab['Nombre'],
-                "Tipo": hab['Tipo_Funcional'],
-                "Ancho (m)": f"{hab['Ancho']:.2f}",
-                "Altura (m)": f"{hab['Altura']:.2f}",
-                "Área (m²)": f"{hab['Ancho'] * hab['Altura']:.2f}"
-            })
-        
-        st.table(pd.DataFrame(tabla_data))
+        st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
 else:
     st.error("No se pudo cargar el archivo de planos.")
     st.info("""
     Esta aplicación requiere un archivo llamado 'planos_ploteo.xlsx' en el mismo directorio.
-    El archivo debe contener la estructura de datos generada por la función 'guardar_multiples_versiones_planos'.
+    Asegúrate de que el archivo esté correctamente formateado con columnas para 'Version', 'Plano_ID', etc.
     """)
