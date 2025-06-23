@@ -74,11 +74,11 @@ def visualizar_plano(datos_plano, titulo, version):
         colores = {
             'Baño': 'lightblue',
             'Dor': 'lightgreen',
-            'Cocina - Comedor': 'lightsalmon',
+            'Cocina - Comedor': 'lightyellow',
             'Estar': 'lightyellow',
-            'Recibidor': 'lightpink',
-            'Cocina': 'lightsalmon',
-            'Comedor': 'lightsalmon'
+            'Recibidor': 'lightyellow',
+            'Cocina': 'lightyellow',
+            'Comedor': 'lightyellow'
             }
         
         # Añadir cada habitación al plano
