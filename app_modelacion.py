@@ -141,7 +141,7 @@ def visualizar_plano(datos_plano, titulo, version):
             ax.set_ylim(0, ancho_casa)
        
         ax.set_aspect('equal')
-        ax.set_title(titulo, fontsize=10)  # Título más pequeño
+        #ax.set_title(titulo, fontsize=10)  # Título más pequeño
         ax.set_xlabel('Largo (m)', fontsize=8)  # Etiqueta más pequeña
         ax.set_ylabel('Ancho (m)', fontsize=8)  # Etiqueta más pequeña
         ax.grid(True, linestyle='--', alpha=0.5)  # Grid menos prominente
