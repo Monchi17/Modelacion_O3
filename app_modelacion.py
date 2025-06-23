@@ -9,6 +9,10 @@ import os
 st.set_page_config(page_title="Visualizador de Planos", layout="wide")
 st.title("Visualizador de Planos")
 
+# Inicializar estado de sesión para planos seleccionados
+if 'planos_seleccionados' not in st.session_state:
+    st.session_state.planos_seleccionados = {}
+
 # Ruta al archivo Excel
 EXCEL_PATH = "planos_ploteo.xlsx"
 
@@ -144,16 +148,38 @@ def visualizar_plano(datos_plano, titulo, version):
         st.error(f"Error al visualizar el plano: {e}")
         return None
 
+def seleccionar_plano(version, plano_id, datos_plano):
+    """Función para manejar la selección de un plano"""
+    # Guardar el plano seleccionado para esta versión
+    st.session_state.planos_seleccionados[version] = {
+        'plano_id': plano_id,
+        'datos': datos_plano
+    }
+    st.success(f"Plano {plano_id} de la versión {version} seleccionado correctamente")
+
 # Cargar los datos
 df = cargar_datos_excel()
 
 if df is not None:
-    # Mostrar columnas para depuración
-    #st.write("Columnas disponibles en el Excel:", list(df.columns))
-    
     # Extraer versiones disponibles
     if 'Version' in df.columns:
         versiones = sorted(df['Version'].unique())
+        
+        # Mostrar planos seleccionados (si hay alguno)
+        if any(st.session_state.planos_seleccionados):
+            st.subheader("Planos seleccionados")
+            cols_seleccionados = st.columns(len(versiones))
+            
+            for i, version in enumerate(versiones):
+                if version in st.session_state.planos_seleccionados:
+                    with cols_seleccionados[i]:
+                        plano_data = st.session_state.planos_seleccionados[version]
+                        st.write(f"### {version} - Plano {plano_data['plano_id']}")
+                        fig = visualizar_plano(plano_data['datos'], f"{version} - Plano {plano_data['plano_id']}", version)
+                        if fig:
+                            st.pyplot(fig)
+        
+        # Selector de versión
         version_seleccionada = st.selectbox("Seleccionar versión:", versiones)
         
         # Filtrar datos para la versión seleccionada
@@ -175,25 +201,29 @@ if df is not None:
                     datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
                     
                     with cols[j]:
-                        #st.write(f"### Plano {plano_id}")
-                        
-                        # # Mostrar información básica utilizando get_safe
-                        # col1, col2, col3 = st.columns(3)
-                        # with col1:
-                        #     ancho_valor = get_safe(datos_plano, 'Ancho_Casa', get_safe(datos_plano, 'ancho_casa'))
-                        #     st.metric("Ancho", ancho_valor)
-                        # with col2:
-                        #     largo_valor = get_safe(datos_plano, 'Largo_Casa', get_safe(datos_plano, 'largo_casa'))
-                        #     st.metric("Largo", largo_valor)
-                        # with col3:
-                        #     num_hab = datos_plano.get('Num_Habitaciones', "N/A")
-                        #     st.metric("Habitaciones", num_hab)
+                        st.write(f"### Plano {plano_id}")
                         
                         # Visualizar plano
                         titulo = f"Plano {plano_id}"
-                        fig = visualizar_plano(datos_plano, titulo,version_seleccionada)
+                        fig = visualizar_plano(datos_plano, titulo, version_seleccionada)
                         if fig:
                             st.pyplot(fig)
+                        
+                        # Resaltar si este plano está seleccionado
+                        is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
+                                      st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
+                        
+                        # Botón para seleccionar este plano
+                        if is_selected:
+                            st.success("✅ SELECCIONADO")
+                            if st.button(f"Deseleccionar plano {plano_id}", key=f"deselect_{version_seleccionada}_{plano_id}"):
+                                if version_seleccionada in st.session_state.planos_seleccionados:
+                                    del st.session_state.planos_seleccionados[version_seleccionada]
+                                st.rerun()
+                        else:
+                            if st.button(f"Seleccionar plano {plano_id}", key=f"select_{version_seleccionada}_{plano_id}"):
+                                seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
+                                st.rerun()
     else:
         st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
 else:
