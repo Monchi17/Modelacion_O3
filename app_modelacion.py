@@ -65,8 +65,9 @@ def visualizar_plano(datos_plano, titulo, version):
         # Extraer información de habitaciones (como JSON)
         habitaciones_json = datos_plano.get('Datos_Habitaciones', '[]')
         habitaciones = json.loads(habitaciones_json)
-        # Crear figura
-        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        # Crear figura con tamaño reducido
+        fig, ax = plt.subplots(figsize=(6, 5))  # Tamaño reducido
         
         # Colores para diferentes tipos de habitaciones
         colores = {
@@ -102,11 +103,10 @@ def visualizar_plano(datos_plano, titulo, version):
             cx = np.mean(vertices_array[:, 0])
             cy = np.mean(vertices_array[:, 1])
             
-            # Añadir etiqueta con nombre y tipo
+            # Añadir etiqueta con nombre y tipo (fuente más pequeña)
             ax.text(cx, cy, f"{nombre}\n{tipo}", ha='center', va='center', 
-                   fontsize=10, fontweight='bold')
+                   fontsize=8, fontweight='bold')  # Fuente más pequeña
 
-        
         # Configurar límites y aspecto
         if version == "v1":
             largo_casa = 2.440 * 2
@@ -138,10 +138,10 @@ def visualizar_plano(datos_plano, titulo, version):
             ax.set_ylim(0, ancho_casa)
        
         ax.set_aspect('equal')
-        ax.set_title(titulo, fontsize=16)
-        ax.set_xlabel('Largo (m)')
-        ax.set_ylabel('Ancho (m)')
-        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.set_title(titulo, fontsize=12)  # Título más pequeño
+        ax.set_xlabel('Largo (m)', fontsize=9)  # Etiqueta más pequeña
+        ax.set_ylabel('Ancho (m)', fontsize=9)  # Etiqueta más pequeña
+        ax.grid(True, linestyle='--', alpha=0.5)  # Grid menos prominente
         
         return fig
     except Exception as e:
@@ -177,7 +177,7 @@ if df is not None:
                         st.write(f"### {version} - Plano {plano_data['plano_id']}")
                         fig = visualizar_plano(plano_data['datos'], f"{version} - Plano {plano_data['plano_id']}", version)
                         if fig:
-                            st.pyplot(fig)
+                            st.pyplot(fig, use_container_width=True)
         
         # Selector de versión
         version_seleccionada = st.selectbox("Seleccionar versión:", versiones)
@@ -191,11 +191,15 @@ if df is not None:
         # Obtener todos los planos de esta versión
         planos_ids = sorted(df_filtrado['Plano_ID'].unique())
         
-        # Mostrar los planos en filas de 2 columnas
-        for i in range(0, len(planos_ids), 1):
-            cols = st.columns(4)
+        # Determinar el número de columnas basado en la versión
+        # v1 y v2 tendrán 4 planos en una fila, otras versiones 2 por fila
+        num_columnas = 4 if version_seleccionada in ["v1", "v2"] else 2
+        
+        # Mostrar los planos en filas según el número de columnas
+        for i in range(0, len(planos_ids), num_columnas):
+            cols = st.columns(num_columnas)
             
-            for j in range(2):
+            for j in range(num_columnas):
                 if i+j < len(planos_ids):
                     plano_id = planos_ids[i+j]
                     datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
@@ -207,7 +211,7 @@ if df is not None:
                         titulo = f"Plano {plano_id}"
                         fig = visualizar_plano(datos_plano, titulo, version_seleccionada)
                         if fig:
-                            st.pyplot(fig)
+                            st.pyplot(fig, use_container_width=True)
                         
                         # Resaltar si este plano está seleccionado
                         is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
