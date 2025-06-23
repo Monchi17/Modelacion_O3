@@ -192,8 +192,8 @@ if df is not None:
         planos_ids = sorted(df_filtrado['Plano_ID'].unique())
         
         # Mostrar los planos en filas de 2 columnas
-        for i in range(0, len(planos_ids), 2):
-            cols = st.columns(2)
+        for i in range(0, len(planos_ids), 1):
+            cols = st.columns(4)
             
             for j in range(2):
                 if i+j < len(planos_ids):
