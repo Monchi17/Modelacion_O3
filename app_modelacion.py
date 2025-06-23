@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -67,7 +68,7 @@ def visualizar_plano(datos_plano, titulo, version):
         habitaciones = json.loads(habitaciones_json)
         
         # Crear figura con tamaño reducido
-        fig, ax = plt.subplots(figsize=(6, 5))  # Tamaño reducido
+        fig, ax = plt.subplots(figsize=(5, 4))  # Tamaño más reducido para v3/v4/v5 con más columnas
         
         # Colores para diferentes tipos de habitaciones
         colores = {
@@ -104,8 +105,10 @@ def visualizar_plano(datos_plano, titulo, version):
             cy = np.mean(vertices_array[:, 1])
             
             # Añadir etiqueta con nombre y tipo (fuente más pequeña)
+            # Ajustar tamaño de fuente según la versión
+            font_size = 6 if version in ["v3", "v4", "v5"] else 8
             ax.text(cx, cy, f"{nombre}\n{tipo}", ha='center', va='center', 
-                   fontsize=8, fontweight='bold')  # Fuente más pequeña
+                   fontsize=font_size, fontweight='bold')
 
         # Configurar límites y aspecto
         if version == "v1":
@@ -138,10 +141,11 @@ def visualizar_plano(datos_plano, titulo, version):
             ax.set_ylim(0, ancho_casa)
        
         ax.set_aspect('equal')
-        ax.set_title(titulo, fontsize=12)  # Título más pequeño
-        ax.set_xlabel('Largo (m)', fontsize=9)  # Etiqueta más pequeña
-        ax.set_ylabel('Ancho (m)', fontsize=9)  # Etiqueta más pequeña
+        ax.set_title(titulo, fontsize=10)  # Título más pequeño
+        ax.set_xlabel('Largo (m)', fontsize=8)  # Etiqueta más pequeña
+        ax.set_ylabel('Ancho (m)', fontsize=8)  # Etiqueta más pequeña
         ax.grid(True, linestyle='--', alpha=0.5)  # Grid menos prominente
+        plt.tight_layout()
         
         return fig
     except Exception as e:
@@ -190,22 +194,45 @@ if df is not None:
         
         # Obtener todos los planos de esta versión
         planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+        total_planos = len(planos_ids)
         
         # Determinar el número de columnas basado en la versión
-        # v1 y v2 tendrán 4 planos en una fila, otras versiones 2 por fila
-        num_columnas = 4 if version_seleccionada in ["v1", "v2"] else 2
+        if version_seleccionada == "v1" or version_seleccionada == "v2":
+            num_columnas = 4
+            num_filas = 1  # Una fila para v1 y v2
+        elif version_seleccionada == "v3":
+            num_columnas = 6
+            num_filas = (total_planos + num_columnas - 1) // num_columnas  # Redondear hacia arriba
+        elif version_seleccionada == "v4":
+            num_columnas = 4
+            num_filas = 3  # 3 filas para v4
+        elif version_seleccionada == "v5":
+            num_columnas = 4
+            num_filas = 6  # 6 filas para v5
+        else:
+            num_columnas = 2
+            num_filas = (total_planos + num_columnas - 1) // num_columnas
         
-        # Mostrar los planos en filas según el número de columnas
-        for i in range(0, len(planos_ids), num_columnas):
+        # Mostrar los planos en filas según el número de columnas definido
+        for fila in range(num_filas):
+            # Crear columnas para esta fila
             cols = st.columns(num_columnas)
             
-            for j in range(num_columnas):
-                if i+j < len(planos_ids):
-                    plano_id = planos_ids[i+j]
+            # Mostrar los planos de esta fila
+            for col in range(num_columnas):
+                idx_plano = fila * num_columnas + col
+                
+                # Verificar que no nos pasemos de la cantidad de planos
+                if idx_plano < total_planos:
+                    plano_id = planos_ids[idx_plano]
                     datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
                     
-                    with cols[j]:
-                        st.write(f"### Plano {plano_id}")
+                    with cols[col]:
+                        # Para versiones con muchos planos, hacer encabezados más compactos
+                        if version_seleccionada in ["v3", "v4", "v5"]:
+                            st.write(f"#### Plano {plano_id}")
+                        else:
+                            st.write(f"### Plano {plano_id}")
                         
                         # Visualizar plano
                         titulo = f"Plano {plano_id}"
@@ -217,17 +244,22 @@ if df is not None:
                         is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
                                       st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
                         
+                        # Botones más compactos para versiones con muchos planos
+                        col1, col2 = st.columns(2)
+                        
                         # Botón para seleccionar este plano
                         if is_selected:
                             st.success("✅ SELECCIONADO")
-                            if st.button(f"Deseleccionar plano {plano_id}", key=f"deselect_{version_seleccionada}_{plano_id}"):
-                                if version_seleccionada in st.session_state.planos_seleccionados:
-                                    del st.session_state.planos_seleccionados[version_seleccionada]
-                                st.rerun()
+                            with col1:
+                                if st.button(f"Deseleccionar", key=f"deselect_{version_seleccionada}_{plano_id}"):
+                                    if version_seleccionada in st.session_state.planos_seleccionados:
+                                        del st.session_state.planos_seleccionados[version_seleccionada]
+                                    st.rerun()
                         else:
-                            if st.button(f"Seleccionar plano {plano_id}", key=f"select_{version_seleccionada}_{plano_id}"):
-                                seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
-                                st.rerun()
+                            with col1:
+                                if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
+                                    seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
+                                    st.rerun()
     else:
         st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
 else:
