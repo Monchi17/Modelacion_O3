@@ -169,20 +169,6 @@ if df is not None:
     if 'Version' in df.columns:
         versiones = sorted(df['Version'].unique())
         
-        # # Mostrar planos seleccionados (si hay alguno)
-        # if any(st.session_state.planos_seleccionados):
-        #     st.subheader("Planos seleccionados")
-        #     cols_seleccionados = st.columns(len(versiones))
-            
-        #     for i, version in enumerate(versiones):
-        #         if version in st.session_state.planos_seleccionados:
-        #             with cols_seleccionados[i]:
-        #                 plano_data = st.session_state.planos_seleccionados[version]
-        #                 st.write(f"### {version} - Plano {plano_data['plano_id']}")
-        #                 fig = visualizar_plano(plano_data['datos'], f"{version} - Plano {plano_data['plano_id']}", version)
-        #                 if fig:
-        #                     st.pyplot(fig, use_container_width=True)
-        
         # Selector de versión
         version_seleccionada = st.selectbox("Seleccionar versión:", versiones)
         
@@ -250,11 +236,11 @@ if df is not None:
                         # Botón para seleccionar este plano
                         if is_selected:
                             st.success("✅ SELECCIONADO")
-                            with col1:
-                                if st.button(f"Deseleccionar", key=f"deselect_{version_seleccionada}_{plano_id}"):
-                                    if version_seleccionada in st.session_state.planos_seleccionados:
-                                        del st.session_state.planos_seleccionados[version_seleccionada]
-                                    st.rerun()
+                            # with col1:
+                            #     if st.button(f"Deseleccionar", key=f"deselect_{version_seleccionada}_{plano_id}"):
+                            #         if version_seleccionada in st.session_state.planos_seleccionados:
+                            #             del st.session_state.planos_seleccionados[version_seleccionada]
+                            #         st.rerun()
                         else:
                             with col1:
                                 if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
