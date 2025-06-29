@@ -313,7 +313,7 @@ def mostrar_visualizador():
                                           st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
                             
                             # Botones más compactos para versiones con muchos planos
-                            col1, col2 = st.columns(2)
+                            # col1, col2 = st.columns(2)
                             
                             # Botón para seleccionar este plano
                             if is_selected:
