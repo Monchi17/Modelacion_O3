@@ -319,10 +319,10 @@ def mostrar_visualizador():
                             if is_selected:
                                 st.success("✅ SELECCIONADO")
                             else:
-                                with col1:
-                                    if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
-                                        seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
-                                        st.rerun()
+                                # with col1:
+                                if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
+                                    seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
+                                    st.rerun()
         else:
             st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
     else:
