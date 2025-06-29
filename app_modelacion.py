@@ -256,14 +256,8 @@ def seleccionar_plano_v3(plano_id, datos_plano, grupo):
         st.session_state.planos_seleccionados['v3'] = {
             'plano_id': plano_id,
             'datos': datos_plano
-        } 
-        
-        if is_selected:
-            st.success("✅ SELECCIONADO")
-        else:
-            if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
-                seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
-                st.rerun()
+        }
+        st.success(f"¡Plano {plano_id} seleccionado como ganador de v3!")
 
 def reiniciar_seleccion_v3():
     """Reiniciar la selección de v3 para empezar de nuevo"""
@@ -340,6 +334,25 @@ def mostrar_seleccion_v3(df_filtrado):
     }
     
     if grupo_actual <= 3:
+        # Mostrar grupo actual (1, 2, o 3)
+        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
+        
+        # Mostrar progreso
+        progreso_texto = []
+        for i in range(1, 4):
+            if i < grupo_actual:
+                plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+                progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+            elif i == grupo_actual:
+                progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+            else:
+                progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        
+        st.markdown("**Progreso:**")
+        for texto in progreso_texto:
+            st.markdown(f"- {texto}")
+        
         # Botones de navegación
         col1, col2, col3 = st.columns([1, 2, 1])
         
@@ -348,6 +361,11 @@ def mostrar_seleccion_v3(df_filtrado):
                 if st.button("⬅️ Grupo Anterior"):
                     ir_grupo_anterior_v3()
                     st.rerun()
+        
+        with col2:
+            if st.button("🔄 Reiniciar Todo"):
+                reiniciar_seleccion_v3()
+                st.rerun()
         
         with col3:
             # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
@@ -378,12 +396,24 @@ def mostrar_seleccion_v3(df_filtrado):
                 
                 if is_selected:
                     st.success("✅ SELECCIONADO")
+                    if st.button(f"Cambiar Selección", key=f"change_v3_g{grupo_actual}_{plano_id}"):
+                        # Eliminar la selección actual
+                        if grupo_actual in st.session_state.v3_seleccionados_por_grupo:
+                            del st.session_state.v3_seleccionados_por_grupo[grupo_actual]
+                        st.rerun()
                 else:
-                    if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
+                    # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
+                    puede_seleccionar = grupo_actual not in st.session_state.v3_seleccionados_por_grupo
+                    
+                    if st.button(f"Seleccionar", 
+                                key=f"select_v3_g{grupo_actual}_{plano_id}",
+                                disabled=not puede_seleccionar):
                         seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
                         st.rerun()
     
     else:  # grupo_actual == 4 (Ronda final)
+        st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v3")
+        
         # Mostrar los 3 planos seleccionados
         planos_finalistas = []
         for grupo in [1, 2, 3]:
@@ -391,7 +421,7 @@ def mostrar_seleccion_v3(df_filtrado):
                 plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
                 planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
         
-        #st.success(f"Finalistas: {', '.join(planos_finalistas)}")
+        st.success(f"Finalistas: {', '.join(planos_finalistas)}")
         
         # Botón para volver al grupo anterior
         if st.button("⬅️ Volver al Grupo 3"):
@@ -406,9 +436,10 @@ def mostrar_seleccion_v3(df_filtrado):
                 plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
                 plano_id = plano_info['plano_id']
                 datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
-                    
+                
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
+                    st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -423,7 +454,7 @@ def mostrar_seleccion_v3(df_filtrado):
                     if is_winner:
                         st.success("🏆 GANADOR FINAL")
                     else:
-                        if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
+                        if st.button(f"Seleccionar Ganador", key=f"select_v3_final_{plano_id}"):
                             seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
                             st.rerun()
 
