@@ -447,10 +447,10 @@ def mostrar_seleccion_v3(df_filtrado):
                     
                     #if is_winner:
                        # st.success("🏆 GANADOR FINAL")
-                    else:
-                        if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
-                            seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
-                            st.rerun()
+                    #else:
+                     #   if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
+                      #      seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
+                       #     st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     """Lógica normal para versiones diferentes a v2"""
