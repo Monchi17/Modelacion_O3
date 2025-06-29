@@ -18,11 +18,11 @@ if 'planos_seleccionados' not in st.session_state:
     st.session_state.planos_seleccionados = {}
 
 # Inicializar estado para las rondas de selección de v3
-if 'v3_ronda' not in st.session_state:
-    st.session_state.v3_ronda = 1  # Ronda 1: seleccionar 3 de 12, Ronda 2: seleccionar 1 de 3
+if 'v3_grupo_actual' not in st.session_state:
+    st.session_state.v3_grupo_actual = 1  # Grupo 1, 2, 3, o 4 (final)
 
-if 'v3_semifinalistas' not in st.session_state:
-    st.session_state.v3_semifinalistas = []
+if 'v3_seleccionados_por_grupo' not in st.session_state:
+    st.session_state.v3_seleccionados_por_grupo = {}  # {grupo: plano_id}
 
 def mostrar_bienvenida():
     """Página de bienvenida con formulario de usuario"""
@@ -235,26 +235,24 @@ def visualizar_plano(datos_plano, titulo, version):
         st.error(f"Error al visualizar el plano: {e}")
         return None
 
-def seleccionar_plano_v3(plano_id, datos_plano, ronda):
-    """Función especial para manejar la selección de planos v3 con sistema de rondas"""
-    if ronda == 1:  # Primera ronda: seleccionar 3 de 12
-        if plano_id not in st.session_state.v3_semifinalistas:
-            if len(st.session_state.v3_semifinalistas) < 3:
-                st.session_state.v3_semifinalistas.append(plano_id)
-                st.success(f"Plano {plano_id} seleccionado como semifinalista ({len(st.session_state.v3_semifinalistas)}/3)")
-                
-                # Si ya tenemos 3 semifinalistas, pasar a la ronda 2
-                if len(st.session_state.v3_semifinalistas) == 3:
-                    st.session_state.v3_ronda = 2
-                    st.info("¡3 planos semifinalistas seleccionados! Ahora elige el plano final.")
-            else:
-                st.warning("Ya has seleccionado 3 planos semifinalistas.")
+def seleccionar_plano_v3(plano_id, datos_plano, grupo):
+    """Función especial para manejar la selección de planos v3 con sistema de grupos"""
+    if grupo <= 3:  # Grupos 1, 2, 3
+        st.session_state.v3_seleccionados_por_grupo[grupo] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"Plano {plano_id} seleccionado del Grupo {grupo}")
+        
+        # Avanzar al siguiente grupo automáticamente
+        if grupo < 3:
+            st.session_state.v3_grupo_actual = grupo + 1
+            st.info(f"Pasando al Grupo {grupo + 1}")
         else:
-            # Deseleccionar
-            st.session_state.v3_semifinalistas.remove(plano_id)
-            st.info(f"Plano {plano_id} deseleccionado ({len(st.session_state.v3_semifinalistas)}/3)")
+            st.session_state.v3_grupo_actual = 4  # Ir a la ronda final
+            st.info("¡Todos los grupos completados! Ahora elige el plano ganador.")
     
-    elif ronda == 2:  # Segunda ronda: seleccionar 1 de 3
+    elif grupo == 4:  # Ronda final
         st.session_state.planos_seleccionados['v3'] = {
             'plano_id': plano_id,
             'datos': datos_plano
@@ -263,10 +261,20 @@ def seleccionar_plano_v3(plano_id, datos_plano, ronda):
 
 def reiniciar_seleccion_v3():
     """Reiniciar la selección de v3 para empezar de nuevo"""
-    st.session_state.v3_ronda = 1
-    st.session_state.v3_semifinalistas = []
+    st.session_state.v3_grupo_actual = 1
+    st.session_state.v3_seleccionados_por_grupo = {}
     if 'v3' in st.session_state.planos_seleccionados:
         del st.session_state.planos_seleccionados['v3']
+
+def ir_grupo_anterior_v3():
+    """Ir al grupo anterior en v3"""
+    if st.session_state.v3_grupo_actual > 1:
+        st.session_state.v3_grupo_actual -= 1
+        # Si volvemos de la ronda final, no eliminar las selecciones previas
+        if st.session_state.v3_grupo_actual == 3:
+            # Solo eliminar la selección final si existe
+            if 'v3' in st.session_state.planos_seleccionados:
+                del st.session_state.planos_seleccionados['v3']
 
 def seleccionar_plano(version, plano_id, datos_plano):
     """Función para manejar la selección de un plano (para versiones diferentes a v2)"""
@@ -314,52 +322,124 @@ def mostrar_visualizador():
         """)
 
 def mostrar_seleccion_v3(df_filtrado):
-    """Lógica especial para v3 con sistema de rondas"""
+    """Lógica especial para v3 con sistema de grupos"""
     planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+    grupo_actual = st.session_state.v3_grupo_actual
     
-    # Mostrar información de la ronda actual
-    if st.session_state.v3_ronda == 1:
-        st.subheader("🏠 Ronda 1: Selecciona 3 planos semifinalistas de v3")
-        st.info(f"Planos seleccionados: {len(st.session_state.v3_semifinalistas)}/3")
+    # Dividir los 12 planos en 3 grupos de 4
+    grupos_planos = {
+        1: planos_ids[0:4],   # Planos 1-4
+        2: planos_ids[4:8],   # Planos 5-8
+        3: planos_ids[8:12]   # Planos 9-12
+    }
+    
+    if grupo_actual <= 3:
+        # Mostrar grupo actual (1, 2, o 3)
+        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
-        # Botón para reiniciar selección
-        if len(st.session_state.v3_semifinalistas) > 0:
-            if st.button("🔄 Reiniciar selección"):
+        # Mostrar progreso
+        progreso_texto = []
+        for i in range(1, 4):
+            if i < grupo_actual:
+                plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+                progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+            elif i == grupo_actual:
+                progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+            else:
+                progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        
+        st.markdown("**Progreso:**")
+        for texto in progreso_texto:
+            st.markdown(f"- {texto}")
+        
+        # Botones de navegación
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col1:
+            if grupo_actual > 1:
+                if st.button("⬅️ Grupo Anterior"):
+                    ir_grupo_anterior_v3()
+                    st.rerun()
+        
+        with col2:
+            if st.button("🔄 Reiniciar Todo"):
                 reiniciar_seleccion_v3()
                 st.rerun()
         
-        # Mostrar todos los planos (12 planos de 4 en 4)
-        num_columnas = 4
-        num_filas = 3  # 12 planos / 4 columnas = 3 filas
-        planos_a_mostrar = planos_ids
+        with col3:
+            # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
+            if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
+                if st.button("➡️ Siguiente Grupo"):
+                    st.session_state.v3_grupo_actual += 1
+                    st.rerun()
         
-    else:  # Ronda 2
-        st.subheader("🏆 Ronda 2: Selecciona el plano ganador de v3")
-        st.success(f"Semifinalistas: {', '.join([f'Plano {p}' for p in st.session_state.v3_semifinalistas])}")
+        # Mostrar los 4 planos del grupo actual
+        planos_grupo = grupos_planos[grupo_actual]
+        cols = st.columns(4)
         
-        # Botón para volver a la ronda 1
-        if st.button("⬅️ Volver a Ronda 1"):
-            st.session_state.v3_ronda = 1
+        for i, plano_id in enumerate(planos_grupo):
+            datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+            
+            with cols[i]:
+                st.write(f"### Plano {plano_id}")
+                
+                # Visualizar plano
+                titulo = f"Plano {plano_id}"
+                fig = visualizar_plano(datos_plano, titulo, "v3")
+                if fig:
+                    st.pyplot(fig, use_container_width=True)
+                
+                # Verificar si este plano está seleccionado para este grupo
+                plano_seleccionado = st.session_state.v3_seleccionados_por_grupo.get(grupo_actual, {}).get('plano_id')
+                is_selected = plano_seleccionado == plano_id
+                
+                if is_selected:
+                    st.success("✅ SELECCIONADO")
+                    if st.button(f"Cambiar Selección", key=f"change_v3_g{grupo_actual}_{plano_id}"):
+                        # Eliminar la selección actual
+                        if grupo_actual in st.session_state.v3_seleccionados_por_grupo:
+                            del st.session_state.v3_seleccionados_por_grupo[grupo_actual]
+                        st.rerun()
+                else:
+                    # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
+                    puede_seleccionar = grupo_actual not in st.session_state.v3_seleccionados_por_grupo
+                    
+                    if st.button(f"Seleccionar", 
+                                key=f"select_v3_g{grupo_actual}_{plano_id}",
+                                disabled=not puede_seleccionar):
+                        seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
+                        st.rerun()
+    
+    else:  # grupo_actual == 4 (Ronda final)
+        st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v3")
+        
+        # Mostrar los 3 planos seleccionados
+        planos_finalistas = []
+        for grupo in [1, 2, 3]:
+            if grupo in st.session_state.v3_seleccionados_por_grupo:
+                plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
+                planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
+        
+        st.success(f"Finalistas: {', '.join(planos_finalistas)}")
+        
+        # Botón para volver al grupo anterior
+        if st.button("⬅️ Volver al Grupo 3"):
+            ir_grupo_anterior_v3()
             st.rerun()
         
-        # Mostrar solo los 3 semifinalistas
-        num_columnas = 3
-        num_filas = 1
-        planos_a_mostrar = st.session_state.v3_semifinalistas
-    
-    # Mostrar los planos
-    for fila in range(num_filas):
-        cols = st.columns(num_columnas)
+        # Mostrar los 3 planos finalistas
+        cols = st.columns(3)
         
-        for col in range(num_columnas):
-            idx_plano = fila * num_columnas + col
-            
-            if idx_plano < len(planos_a_mostrar):
-                plano_id = planos_a_mostrar[idx_plano]
+        for i, grupo in enumerate([1, 2, 3]):
+            if grupo in st.session_state.v3_seleccionados_por_grupo:
+                plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
+                plano_id = plano_info['plano_id']
                 datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
                 
-                with cols[col]:
+                with cols[i]:
                     st.write(f"### Plano {plano_id}")
+                    st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -367,35 +447,16 @@ def mostrar_seleccion_v3(df_filtrado):
                     if fig:
                         st.pyplot(fig, use_container_width=True)
                     
-                    # Lógica de botones según la ronda
-                    if st.session_state.v3_ronda == 1:
-                        # Ronda 1: Seleccionar semifinalistas
-                        is_selected = plano_id in st.session_state.v3_semifinalistas
-                        
-                        if is_selected:
-                            st.success("✅ SEMIFINALISTA")
-                            if st.button(f"Deseleccionar", key=f"deselect_v3_{plano_id}"):
-                                seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 1)
-                                st.rerun()
-                        else:
-                            can_select = len(st.session_state.v3_semifinalistas) < 3
-                            if st.button(f"Seleccionar", 
-                                        key=f"select_v3_r1_{plano_id}",
-                                        disabled=not can_select):
-                                seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 1)
-                                st.rerun()
+                    # Verificar si es el ganador final
+                    is_winner = ('v3' in st.session_state.planos_seleccionados and 
+                               st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
                     
+                    if is_winner:
+                        st.success("🏆 GANADOR FINAL")
                     else:
-                        # Ronda 2: Seleccionar ganador
-                        is_winner = ('v3' in st.session_state.planos_seleccionados and 
-                                   st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
-                        
-                        if is_winner:
-                            st.success("🏆 GANADOR")
-                        else:
-                            if st.button(f"Seleccionar Ganador", key=f"select_v3_r2_{plano_id}"):
-                                seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 2)
-                                st.rerun()
+                        if st.button(f"Seleccionar Ganador", key=f"select_v3_final_{plano_id}"):
+                            seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
+                            st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     """Lógica normal para versiones diferentes a v2"""
