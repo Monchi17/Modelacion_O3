@@ -334,21 +334,6 @@ def mostrar_seleccion_v3(df_filtrado):
     }
     
     if grupo_actual <= 3:
-        # Mostrar progreso
-        # progreso_texto = []
-        # for i in range(1, 4):
-        #     if i < grupo_actual:
-        #         plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-        #     elif i == grupo_actual:
-        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-        #     else:
-        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
-        
-        # st.markdown("**Progreso:**")
-        # for texto in progreso_texto:
-        #     st.markdown(f"- {texto}")
-        
         # Botones de navegación
         col1, col2, col3 = st.columns([1, 2, 1])
         
@@ -357,11 +342,6 @@ def mostrar_seleccion_v3(df_filtrado):
                 if st.button("⬅️ Grupo Anterior"):
                     ir_grupo_anterior_v3()
                     st.rerun()
-        
-        # with col2:
-        #     if st.button("🔄 Reiniciar Todo"):
-        #         reiniciar_seleccion_v3()
-        #         st.rerun()
         
         with col3:
             # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
@@ -398,12 +378,10 @@ def mostrar_seleccion_v3(df_filtrado):
                         #     del st.session_state.v3_seleccionados_por_grupo[grupo_actual]
                         #st.rerun()
                 else:
-                    # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
-                    puede_seleccionar = grupo_actual not in st.session_state.v3_seleccionados_por_grupo
+                #     # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
+                #     puede_seleccionar = grupo_actual not in st.session_state.v3_seleccionados_por_grupo
                     
-                    if st.button(f"Seleccionar", 
-                                key=f"select_v3_g{grupo_actual}_{plano_id}",
-                                disabled=not puede_seleccionar):
+                    if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
                         seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
                         st.rerun()
     
