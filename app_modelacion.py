@@ -17,6 +17,13 @@ if 'pagina' not in st.session_state:
 if 'planos_seleccionados' not in st.session_state:
     st.session_state.planos_seleccionados = {}
 
+# Inicializar estado para las rondas de selección de v2
+if 'v2_ronda' not in st.session_state:
+    st.session_state.v2_ronda = 1  # Ronda 1: seleccionar 3 de 12, Ronda 2: seleccionar 1 de 3
+
+if 'v2_semifinalistas' not in st.session_state:
+    st.session_state.v2_semifinalistas = []
+
 def mostrar_bienvenida():
     """Página de bienvenida con formulario de usuario"""
     # Título centrado y estilizado
@@ -64,10 +71,11 @@ def mostrar_bienvenida():
     st.markdown("<br>", unsafe_allow_html=True)
     
     # Centrar el botón
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
-        if st.button("🚀 Continuar al Visualizador", 
+        if st.button("🚀 Continuar", 
                     disabled=not campos_validos,
+                    use_container_width=False,
                     help="Complete todos los campos requeridos para continuar" if not campos_validos else ""):
             if campos_validos:
                 st.session_state.pagina = 'planos'
@@ -227,8 +235,41 @@ def visualizar_plano(datos_plano, titulo, version):
         st.error(f"Error al visualizar el plano: {e}")
         return None
 
+def seleccionar_plano_v2(plano_id, datos_plano, ronda):
+    """Función especial para manejar la selección de planos v2 con sistema de rondas"""
+    if ronda == 1:  # Primera ronda: seleccionar 3 de 12
+        if plano_id not in st.session_state.v2_semifinalistas:
+            if len(st.session_state.v2_semifinalistas) < 3:
+                st.session_state.v2_semifinalistas.append(plano_id)
+                st.success(f"Plano {plano_id} seleccionado como semifinalista ({len(st.session_state.v2_semifinalistas)}/3)")
+                
+                # Si ya tenemos 3 semifinalistas, pasar a la ronda 2
+                if len(st.session_state.v2_semifinalistas) == 3:
+                    st.session_state.v2_ronda = 2
+                    st.info("¡3 planos semifinalistas seleccionados! Ahora elige el plano final.")
+            else:
+                st.warning("Ya has seleccionado 3 planos semifinalistas.")
+        else:
+            # Deseleccionar
+            st.session_state.v2_semifinalistas.remove(plano_id)
+            st.info(f"Plano {plano_id} deseleccionado ({len(st.session_state.v2_semifinalistas)}/3)")
+    
+    elif ronda == 2:  # Segunda ronda: seleccionar 1 de 3
+        st.session_state.planos_seleccionados['v2'] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"¡Plano {plano_id} seleccionado como ganador de v2!")
+
+def reiniciar_seleccion_v2():
+    """Reiniciar la selección de v2 para empezar de nuevo"""
+    st.session_state.v2_ronda = 1
+    st.session_state.v2_semifinalistas = []
+    if 'v2' in st.session_state.planos_seleccionados:
+        del st.session_state.planos_seleccionados['v2']
+
 def seleccionar_plano(version, plano_id, datos_plano):
-    """Función para manejar la selección de un plano"""
+    """Función para manejar la selección de un plano (para versiones diferentes a v2)"""
     # Guardar el plano seleccionado para esta versión
     st.session_state.planos_seleccionados[version] = {
         'plano_id': plano_id,
@@ -257,68 +298,12 @@ def mostrar_visualizador():
             # Filtrar datos para la versión seleccionada
             df_filtrado = df[df['Version'] == version_seleccionada]
             
-            # Mostrar todos los planos de la versión seleccionada
-            #st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
-            
-            # Obtener todos los planos de esta versión
-            planos_ids = sorted(df_filtrado['Plano_ID'].unique())
-            total_planos = len(planos_ids)
-            
-            # Determinar el número de columnas basado en la versión
-            if version_seleccionada == "v1" or version_seleccionada == "v2":
-                num_columnas = 4
-                num_filas = 1  # Una fila para v1 y v2
-            elif version_seleccionada == "v3":
-                num_columnas = 4
-                num_filas = (total_planos + num_columnas - 1) // num_columnas  # Redondear hacia arriba
-            elif version_seleccionada == "v4":
-                num_columnas = 4
-                num_filas = 3  # 3 filas para v4
-            elif version_seleccionada == "v5":
-                num_columnas = 4
-                num_filas = 6  # 6 filas para v5
+            # Lógica especial para v2 con sistema de rondas
+            if version_seleccionada == "v2":
+                mostrar_seleccion_v2(df_filtrado)
             else:
-                num_columnas = 2
-                num_filas = (total_planos + num_columnas - 1) // num_columnas
-            
-            # Mostrar los planos en filas según el número de columnas definido
-            for fila in range(num_filas):
-                # Crear columnas para esta fila
-                cols = st.columns(num_columnas)
-                
-                # Mostrar los planos de esta fila
-                for col in range(num_columnas):
-                    idx_plano = fila * num_columnas + col
-                    
-                    # Verificar que no nos pasemos de la cantidad de planos
-                    if idx_plano < total_planos:
-                        plano_id = planos_ids[idx_plano]
-                        datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
-                        
-                        with cols[col]:
-                            # Para versiones con muchos planos, hacer encabezados más compactos
-                            if version_seleccionada in ["v3", "v4", "v5"]:
-                                st.write(f"#### Plano {plano_id}")
-                            else:
-                                st.write(f"### Plano {plano_id}")
-                            
-                            # Visualizar plano
-                            titulo = f"Plano {plano_id}"
-                            fig = visualizar_plano(datos_plano, titulo, version_seleccionada)
-                            if fig:
-                                st.pyplot(fig, use_container_width=True)
-                            
-                            # Resaltar si este plano está seleccionado
-                            is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
-                                          st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
-                            
-                            # Botón para seleccionar este plano
-                            if is_selected:
-                                st.success("✅ SELECCIONADO")
-                            else:
-                                if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
-                                    seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
-                                    st.rerun()
+                # Lógica normal para otras versiones
+                mostrar_seleccion_normal(df_filtrado, version_seleccionada)
         else:
             st.error("El Excel no contiene una columna 'Version'. Asegúrate de que el formato sea correcto.")
     else:
@@ -328,8 +313,154 @@ def mostrar_visualizador():
         Asegúrate de que el archivo esté correctamente formateado con columnas para 'Version', 'Plano_ID', etc.
         """)
 
+def mostrar_seleccion_v2(df_filtrado):
+    """Lógica especial para v2 con sistema de rondas"""
+    planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+    
+    # Mostrar información de la ronda actual
+    if st.session_state.v2_ronda == 1:
+        st.subheader("🏠 Ronda 1: Selecciona 3 planos semifinalistas de v2")
+        st.info(f"Planos seleccionados: {len(st.session_state.v2_semifinalistas)}/3")
+        
+        # Botón para reiniciar selección
+        if len(st.session_state.v2_semifinalistas) > 0:
+            if st.button("🔄 Reiniciar selección"):
+                reiniciar_seleccion_v2()
+                st.rerun()
+        
+        # Mostrar todos los planos (12 planos de 4 en 4)
+        num_columnas = 4
+        num_filas = 3  # 12 planos / 4 columnas = 3 filas
+        planos_a_mostrar = planos_ids
+        
+    else:  # Ronda 2
+        st.subheader("🏆 Ronda 2: Selecciona el plano ganador de v2")
+        st.success(f"Semifinalistas: {', '.join([f'Plano {p}' for p in st.session_state.v2_semifinalistas])}")
+        
+        # Botón para volver a la ronda 1
+        if st.button("⬅️ Volver a Ronda 1"):
+            st.session_state.v2_ronda = 1
+            st.rerun()
+        
+        # Mostrar solo los 3 semifinalistas
+        num_columnas = 3
+        num_filas = 1
+        planos_a_mostrar = st.session_state.v2_semifinalistas
+    
+    # Mostrar los planos
+    for fila in range(num_filas):
+        cols = st.columns(num_columnas)
+        
+        for col in range(num_columnas):
+            idx_plano = fila * num_columnas + col
+            
+            if idx_plano < len(planos_a_mostrar):
+                plano_id = planos_a_mostrar[idx_plano]
+                datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+                
+                with cols[col]:
+                    st.write(f"### Plano {plano_id}")
+                    
+                    # Visualizar plano
+                    titulo = f"Plano {plano_id}"
+                    fig = visualizar_plano(datos_plano, titulo, "v2")
+                    if fig:
+                        st.pyplot(fig, use_container_width=True)
+                    
+                    # Lógica de botones según la ronda
+                    if st.session_state.v2_ronda == 1:
+                        # Ronda 1: Seleccionar semifinalistas
+                        is_selected = plano_id in st.session_state.v2_semifinalistas
+                        
+                        if is_selected:
+                            st.success("✅ SEMIFINALISTA")
+                            if st.button(f"Deseleccionar", key=f"deselect_v2_{plano_id}"):
+                                seleccionar_plano_v2(plano_id, datos_plano.to_dict(), 1)
+                                st.rerun()
+                        else:
+                            can_select = len(st.session_state.v2_semifinalistas) < 3
+                            if st.button(f"Seleccionar", 
+                                        key=f"select_v2_r1_{plano_id}",
+                                        disabled=not can_select):
+                                seleccionar_plano_v2(plano_id, datos_plano.to_dict(), 1)
+                                st.rerun()
+                    
+                    else:
+                        # Ronda 2: Seleccionar ganador
+                        is_winner = ('v2' in st.session_state.planos_seleccionados and 
+                                   st.session_state.planos_seleccionados['v2']['plano_id'] == plano_id)
+                        
+                        if is_winner:
+                            st.success("🏆 GANADOR")
+                        else:
+                            if st.button(f"Seleccionar Ganador", key=f"select_v2_r2_{plano_id}"):
+                                seleccionar_plano_v2(plano_id, datos_plano.to_dict(), 2)
+                                st.rerun()
+
+def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
+    """Lógica normal para versiones diferentes a v2"""
+    st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
+    
+    # Obtener todos los planos de esta versión
+    planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+    total_planos = len(planos_ids)
+    
+    # Determinar el número de columnas basado en la versión
+    if version_seleccionada == "v1":
+        num_columnas = 4
+        num_filas = 1  # Una fila para v1
+    elif version_seleccionada == "v3":
+        num_columnas = 4
+        num_filas = (total_planos + num_columnas - 1) // num_columnas  # Redondear hacia arriba
+    elif version_seleccionada == "v4":
+        num_columnas = 4
+        num_filas = 3  # 3 filas para v4
+    elif version_seleccionada == "v5":
+        num_columnas = 4
+        num_filas = 6  # 6 filas para v5
+    else:
+        num_columnas = 2
+        num_filas = (total_planos + num_columnas - 1) // num_columnas
+    
+    # Mostrar los planos
+    for fila in range(num_filas):
+        cols = st.columns(num_columnas)
+        
+        for col in range(num_columnas):
+            idx_plano = fila * num_columnas + col
+            
+            if idx_plano < total_planos:
+                plano_id = planos_ids[idx_plano]
+                datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+                
+                with cols[col]:
+                    # Para versiones con muchos planos, hacer encabezados más compactos
+                    if version_seleccionada in ["v3", "v4", "v5"]:
+                        st.write(f"#### Plano {plano_id}")
+                    else:
+                        st.write(f"### Plano {plano_id}")
+                    
+                    # Visualizar plano
+                    titulo = f"Plano {plano_id}"
+                    fig = visualizar_plano(datos_plano, titulo, version_seleccionada)
+                    if fig:
+                        st.pyplot(fig, use_container_width=True)
+                    
+                    # Resaltar si este plano está seleccionado
+                    is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
+                                  st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
+                    
+                    # Botón para seleccionar este plano
+                    if is_selected:
+                        st.success("✅ SELECCIONADO")
+                    else:
+                        if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
+                            seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
+                            st.rerun()
+
 # Control de flujo principal
 if st.session_state.pagina == 'bienvenida':
     mostrar_bienvenida()
 else:
     mostrar_visualizador()
+
