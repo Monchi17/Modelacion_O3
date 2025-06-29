@@ -411,17 +411,15 @@ def mostrar_seleccion_v3(df_filtrado):
                     
                 titulo = f"Plano {plano_id}"
                 fig = visualizar_plano(datos_plano, titulo, "v3")
+                
                 if fig:
                     st.pyplot(fig, use_container_width=True)
                     
-                # Verificar si es el ganador final
-                is_winner = ('v3' in st.session_state.planos_seleccionados and st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
-                    
-                if is_winner:
-                    st.success("🏆 GANADOR FINAL")
+                 if is_selected:
+                    st.success("✅ SELECCIONADO")
                 else:
-                    if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
-                        seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
+                    if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
+                        seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
                         st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
