@@ -408,21 +408,21 @@ def mostrar_seleccion_v3(df_filtrado):
                 datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
                     
                     # Visualizar plano
-                    titulo = f"Plano {plano_id}"
-                    fig = visualizar_plano(datos_plano, titulo, "v3")
-                    if fig:
-                        st.pyplot(fig, use_container_width=True)
                     
-                    # Verificar si es el ganador final
-                    is_winner = ('v3' in st.session_state.planos_seleccionados and 
-                               st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
+                titulo = f"Plano {plano_id}"
+                fig = visualizar_plano(datos_plano, titulo, "v3")
+                if fig:
+                    st.pyplot(fig, use_container_width=True)
+                    
+                # Verificar si es el ganador final
+                is_winner = ('v3' in st.session_state.planos_seleccionados and st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
                     
                     #if is_winner:
                        # st.success("🏆 GANADOR FINAL")
-                    else:
-                        if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
-                            seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
-                            st.rerun()
+                else:
+                    if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
+                        seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
+                        st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     """Lógica normal para versiones diferentes a v2"""
