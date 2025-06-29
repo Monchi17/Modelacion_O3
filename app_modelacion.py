@@ -258,7 +258,7 @@ def mostrar_visualizador():
             df_filtrado = df[df['Version'] == version_seleccionada]
             
             # Mostrar todos los planos de la versión seleccionada
-            st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
+            #st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
             
             # Obtener todos los planos de esta versión
             planos_ids = sorted(df_filtrado['Plano_ID'].unique())
