@@ -372,15 +372,7 @@ def mostrar_seleccion_v3(df_filtrado):
                 
                 if is_selected:
                     st.success("✅ SELECCIONADO")
-                    #if st.button(f"Cambiar Selección", key=f"change_v3_g{grupo_actual}_{plano_id}"):
-                        # # Eliminar la selección actual
-                        # if grupo_actual in st.session_state.v3_seleccionados_por_grupo:
-                        #     del st.session_state.v3_seleccionados_por_grupo[grupo_actual]
-                        #st.rerun()
                 else:
-                #     # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
-                #     puede_seleccionar = grupo_actual not in st.session_state.v3_seleccionados_por_grupo
-                    
                     if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
                         seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
                         st.rerun()
@@ -408,10 +400,6 @@ def mostrar_seleccion_v3(df_filtrado):
                 plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
                 plano_id = plano_info['plano_id']
                 datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
-                
-                with cols[i]:
-                    st.write(f"### Plano {plano_id}")
-                    st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -425,10 +413,10 @@ def mostrar_seleccion_v3(df_filtrado):
                     
                     #if is_winner:
                        # st.success("🏆 GANADOR FINAL")
-                    #else:
-                     #   if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
-                      #      seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
-                       #     st.rerun()
+                    else:
+                        if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
+                            seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
+                            st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     """Lógica normal para versiones diferentes a v2"""
