@@ -256,8 +256,14 @@ def seleccionar_plano_v3(plano_id, datos_plano, grupo):
         st.session_state.planos_seleccionados['v3'] = {
             'plano_id': plano_id,
             'datos': datos_plano
-        }
-        st.success(f"¡Plano {plano_id} seleccionado como ganador de v3!")
+        } 
+        
+        if is_selected:
+            st.success("✅ SELECCIONADO")
+        else:
+            if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
+                seleccionar_plano_v3(plano_id, datos_plano.to_dict(), grupo_actual)
+                st.rerun()
 
 def reiniciar_seleccion_v3():
     """Reiniciar la selección de v3 para empezar de nuevo"""
