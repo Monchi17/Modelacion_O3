@@ -409,7 +409,6 @@ def mostrar_seleccion_v3(df_filtrado):
                     
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
-                    st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
