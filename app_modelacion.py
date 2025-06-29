@@ -415,7 +415,7 @@ def mostrar_seleccion_v3(df_filtrado):
                     st.pyplot(fig, use_container_width=True)
                     
                 # Verificar si es el ganador final
-                if is_winner = ('v3' in st.session_state.planos_seleccionados and st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
+                is_winner = ('v3' in st.session_state.planos_seleccionados and st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
                     
                 if is_winner:
                     st.success("🏆 GANADOR FINAL")
