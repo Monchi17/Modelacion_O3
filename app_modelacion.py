@@ -415,7 +415,7 @@ def mostrar_seleccion_v3(df_filtrado):
                 if fig:
                     st.pyplot(fig, use_container_width=True)
                     
-                 if is_selected:
+                if is_selected:
                     st.success("✅ SELECCIONADO")
                 else:
                     if st.button(f"Seleccionar", key=f"select_v3_g{grupo_actual}_{plano_id}"):
