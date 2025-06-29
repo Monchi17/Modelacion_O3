@@ -269,7 +269,7 @@ def mostrar_visualizador():
                 num_columnas = 4
                 num_filas = 1  # Una fila para v1 y v2
             elif version_seleccionada == "v3":
-                num_columnas = 6
+                num_columnas = 4
                 num_filas = (total_planos + num_columnas - 1) // num_columnas  # Redondear hacia arriba
             elif version_seleccionada == "v4":
                 num_columnas = 4
@@ -312,14 +312,10 @@ def mostrar_visualizador():
                             is_selected = (version_seleccionada in st.session_state.planos_seleccionados and 
                                           st.session_state.planos_seleccionados[version_seleccionada]['plano_id'] == plano_id)
                             
-                            # Botones más compactos para versiones con muchos planos
-                            # col1, col2 = st.columns(2)
-                            
                             # Botón para seleccionar este plano
                             if is_selected:
                                 st.success("✅ SELECCIONADO")
                             else:
-                                # with col1:
                                 if st.button(f"Seleccionar", key=f"select_{version_seleccionada}_{plano_id}"):
                                     seleccionar_plano(version_seleccionada, plano_id, datos_plano.to_dict())
                                     st.rerun()
