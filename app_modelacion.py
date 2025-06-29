@@ -114,6 +114,7 @@ def cargar_datos_excel():
         return None
 
 def get_safe(data, key, default="N/A"):
+    """Función helper para obtener datos de forma segura"""
     try:
         if key in data and pd.notna(data[key]):
             return f"{data[key]:.2f} m"
@@ -196,31 +197,18 @@ def visualizar_plano(datos_plano, titulo, version):
 
         # Configurar límites y aspecto
         if version == "v1":
-            largo_casa = 2.440 * 2
-            ancho_casa = 2.440 * 3
             ax.set_xlim(0, largo_casa)
             ax.set_ylim(0, ancho_casa)
-        
         elif version == "v2":
-            largo_casa = 2 * 2.440
-            ancho_casa = 4 * 2.440
             ax.set_xlim(0, largo_casa)
             ax.set_ylim(0, ancho_casa)
-            
         elif version == "v3":
-            largo_casa = 2.440 * 2
-            ancho_casa = 2.440 * 6
             ax.set_xlim(0, largo_casa)
             ax.set_ylim(0, ancho_casa)
-            
         elif version == "v4":
-            largo_casa = 2.440 * 3
-            ancho_casa = 2.440 * 6
             ax.set_xlim(-2.440, 2.440*2)
             ax.set_ylim(0, ancho_casa)
         elif version == "v5":
-            largo_casa = 2.440 * 4
-            ancho_casa = 2.440 * 6
             ax.set_xlim(-2.440*2, 2.440*2)
             ax.set_ylim(0, ancho_casa)
        
@@ -277,7 +265,7 @@ def ir_grupo_anterior_v3():
                 del st.session_state.planos_seleccionados['v3']
 
 def seleccionar_plano(version, plano_id, datos_plano):
-    """Función para manejar la selección de un plano (para versiones diferentes a v2)"""
+    """Función para manejar la selección de un plano (para versiones diferentes a v3)"""
     # Guardar el plano seleccionado para esta versión
     st.session_state.planos_seleccionados[version] = {
         'plano_id': plano_id,
@@ -459,7 +447,7 @@ def mostrar_seleccion_v3(df_filtrado):
                             st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
-    """Lógica normal para versiones diferentes a v2"""
+    """Lógica normal para versiones diferentes a v3"""
     st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
     
     # Obtener todos los planos de esta versión
