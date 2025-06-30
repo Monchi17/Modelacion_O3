@@ -30,7 +30,7 @@ if 'v4_grupo_actual' not in st.session_state:
 
 if 'v4_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v4_seleccionados_por_grupo = {}  # {grupo: plano_id}
-    
+
 def mostrar_bienvenida():
     """Página de bienvenida con formulario de usuario"""
     # Título centrado y estilizado
@@ -253,7 +253,7 @@ def seleccionar_plano_v3(plano_id, datos_plano, grupo):
             'datos': datos_plano
         }
         st.success(f"¡Plano {plano_id} seleccionado como ganador de v3!")
-        
+
 def seleccionar_plano_v4(plano_id, datos_plano, grupo):
     """Función especial para manejar la selección de planos v4 con sistema de grupos"""
     if grupo <= 3:  # Grupos 1, 2, 3
@@ -301,7 +301,7 @@ def ir_grupo_anterior_v3():
             # Solo eliminar la selección final si existe
             if 'v3' in st.session_state.planos_seleccionados:
                 del st.session_state.planos_seleccionados['v3']
-                
+
 def ir_grupo_anterior_v4():
     """Ir al grupo anterior en v4"""
     if st.session_state.v4_grupo_actual > 1:
@@ -374,43 +374,43 @@ def mostrar_seleccion_v3(df_filtrado):
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
-        #st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
+        st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
-        # # Mostrar progreso
-        # progreso_texto = []
-        # for i in range(1, 4):
-        #     if i < grupo_actual:
-        #         plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-        #     elif i == grupo_actual:
-        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-        #     else:
-        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        # Mostrar progreso
+        progreso_texto = []
+        for i in range(1, 4):
+            if i < grupo_actual:
+                plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+                progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+            elif i == grupo_actual:
+                progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+            else:
+                progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
         
-        # st.markdown("**Progreso:**")
-        # for texto in progreso_texto:
-        #     st.markdown(f"- {texto}")
+        st.markdown("**Progreso:**")
+        for texto in progreso_texto:
+            st.markdown(f"- {texto}")
         
-        # # Botones de navegación
-        # col1, col2, col3 = st.columns([1, 2, 1])
+        # Botones de navegación
+        col1, col2, col3 = st.columns([1, 2, 1])
         
-        # with col1:
-        #     if grupo_actual > 1:
-        #         if st.button("⬅️ Grupo Anterior"):
-        #             ir_grupo_anterior_v3()
-        #             st.rerun()
+        with col1:
+            if grupo_actual > 1:
+                if st.button("⬅️ Grupo Anterior"):
+                    ir_grupo_anterior_v3()
+                    st.rerun()
         
-        # with col2:
-        #     if st.button("🔄 Reiniciar Todo"):
-        #         reiniciar_seleccion_v3()
-        #         st.rerun()
+        with col2:
+            if st.button("🔄 Reiniciar Todo"):
+                reiniciar_seleccion_v3()
+                st.rerun()
         
-        # with col3:
-        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
-        #     if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
-        #         if st.button("➡️ Siguiente Grupo"):
-        #             st.session_state.v3_grupo_actual += 1
-        #             st.rerun()
+        with col3:
+            # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
+            if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
+                if st.button("➡️ Siguiente Grupo"):
+                    st.session_state.v3_grupo_actual += 1
+                    st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -450,7 +450,7 @@ def mostrar_seleccion_v3(df_filtrado):
                         st.rerun()
     
     else:  # grupo_actual == 4 (Ronda final)
-        #st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v3")
+        st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v3")
         
         # Mostrar los 3 planos seleccionados
         planos_finalistas = []
@@ -459,12 +459,12 @@ def mostrar_seleccion_v3(df_filtrado):
                 plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
                 planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
         
-       # st.success(f"Finalistas: {', '.join(planos_finalistas)}")
+        st.success(f"Finalistas: {', '.join(planos_finalistas)}")
         
-        # # Botón para volver al grupo anterior
-        # if st.button("⬅️ Volver al Grupo 3"):
-        #     ir_grupo_anterior_v3()
-        #     st.rerun()
+        # Botón para volver al grupo anterior
+        if st.button("⬅️ Volver al Grupo 3"):
+            ir_grupo_anterior_v3()
+            st.rerun()
         
         # Mostrar los 3 planos finalistas
         cols = st.columns(3)
@@ -477,7 +477,7 @@ def mostrar_seleccion_v3(df_filtrado):
                 
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
-                    #st.caption(f"Ganador del Grupo {grupo}")
+                    st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -490,12 +490,12 @@ def mostrar_seleccion_v3(df_filtrado):
                                st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
                     
                     if is_winner:
-                        st.success("✅ SELECCIONADO")
+                        st.success("🏆 GANADOR FINAL")
                     else:
-                        if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
+                        if st.button(f"Seleccionar Ganador", key=f"select_v3_final_{plano_id}"):
                             seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
                             st.rerun()
-                            
+
 def mostrar_seleccion_v4(df_filtrado):
     """Lógica especial para v4 con sistema de grupos"""
     planos_ids = sorted(df_filtrado['Plano_ID'].unique())
@@ -511,6 +511,43 @@ def mostrar_seleccion_v4(df_filtrado):
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        #st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
+        
+        # # Mostrar progreso
+        # progreso_texto = []
+        # for i in range(1, 4):
+        #     if i < grupo_actual:
+        #         plano_sel = st.session_state.v4_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+        #     elif i == grupo_actual:
+        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+        #     else:
+        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        
+        # st.markdown("**Progreso:**")
+        # for texto in progreso_texto:
+        #     st.markdown(f"- {texto}")
+        
+        # # Botones de navegación
+        # col1, col2, col3 = st.columns([1, 2, 1])
+        
+        # with col1:
+        #     if grupo_actual > 1:
+        #         if st.button("⬅️ Grupo Anterior"):
+        #             ir_grupo_anterior_v4()
+        #             st.rerun()
+        
+        # with col2:
+        #     if st.button("🔄 Reiniciar Todo"):
+        #         reiniciar_seleccion_v4()
+        #         st.rerun()
+        
+        # with col3:
+        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
+        #     if grupo_actual in st.session_state.v4_seleccionados_por_grupo and grupo_actual < 3:
+        #         if st.button("➡️ Siguiente Grupo"):
+        #             st.session_state.v4_grupo_actual += 1
+        #             st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -550,12 +587,21 @@ def mostrar_seleccion_v4(df_filtrado):
                         st.rerun()
     
     else:  # grupo_actual == 4 (Ronda final)
+        #st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v4")
+        
         # Mostrar los 3 planos seleccionados
         planos_finalistas = []
         for grupo in [1, 2, 3]:
             if grupo in st.session_state.v4_seleccionados_por_grupo:
                 plano_info = st.session_state.v4_seleccionados_por_grupo[grupo]
                 planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
+        
+       # st.success(f"Finalistas: {', '.join(planos_finalistas)}")
+        
+        # # Botón para volver al grupo anterior
+        # if st.button("⬅️ Volver al Grupo 3"):
+        #     ir_grupo_anterior_v4()
+        #     st.rerun()
         
         # Mostrar los 3 planos finalistas
         cols = st.columns(3)
@@ -568,6 +614,7 @@ def mostrar_seleccion_v4(df_filtrado):
                 
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
+                    #st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -587,7 +634,7 @@ def mostrar_seleccion_v4(df_filtrado):
                             st.rerun()
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
-    """Lógica normal para versiones diferentes a v3"""
+    """Lógica normal para versiones diferentes a v3 y v4"""
     st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
     
     # Obtener todos los planos de esta versión
@@ -649,3 +696,4 @@ if st.session_state.pagina == 'bienvenida':
     mostrar_bienvenida()
 else:
     mostrar_visualizador()
+
