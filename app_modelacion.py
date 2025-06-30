@@ -24,6 +24,13 @@ if 'v3_grupo_actual' not in st.session_state:
 if 'v3_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v3_seleccionados_por_grupo = {}  # {grupo: plano_id}
 
+# Inicializar estado para las rondas de selección de v4
+if 'v4_grupo_actual' not in st.session_state:
+    st.session_state.v4_grupo_actual = 1  # Grupo 1, 2, 3, o 4 (final)
+
+if 'v4_seleccionados_por_grupo' not in st.session_state:
+    st.session_state.v4_seleccionados_por_grupo = {}  # {grupo: plano_id}
+    
 def mostrar_bienvenida():
     """Página de bienvenida con formulario de usuario"""
     # Título centrado y estilizado
@@ -246,6 +253,30 @@ def seleccionar_plano_v3(plano_id, datos_plano, grupo):
             'datos': datos_plano
         }
         st.success(f"¡Plano {plano_id} seleccionado como ganador de v3!")
+        
+def seleccionar_plano_v4(plano_id, datos_plano, grupo):
+    """Función especial para manejar la selección de planos v4 con sistema de grupos"""
+    if grupo <= 3:  # Grupos 1, 2, 3
+        st.session_state.v4_seleccionados_por_grupo[grupo] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"Plano {plano_id} seleccionado del Grupo {grupo}")
+        
+        # Avanzar al siguiente grupo automáticamente
+        if grupo < 3:
+            st.session_state.v4_grupo_actual = grupo + 1
+            st.info(f"Pasando al Grupo {grupo + 1}")
+        else:
+            st.session_state.v4_grupo_actual = 4  # Ir a la ronda final
+            st.info("¡Todos los grupos completados! Ahora elige el plano ganador.")
+    
+    elif grupo == 4:  # Ronda final
+        st.session_state.planos_seleccionados['v4'] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"¡Plano {plano_id} seleccionado como ganador de v4!")
 
 def reiniciar_seleccion_v3():
     """Reiniciar la selección de v3 para empezar de nuevo"""
@@ -253,6 +284,13 @@ def reiniciar_seleccion_v3():
     st.session_state.v3_seleccionados_por_grupo = {}
     if 'v3' in st.session_state.planos_seleccionados:
         del st.session_state.planos_seleccionados['v3']
+
+def reiniciar_seleccion_v4():
+    """Reiniciar la selección de v4 para empezar de nuevo"""
+    st.session_state.v4_grupo_actual = 1
+    st.session_state.v4_seleccionados_por_grupo = {}
+    if 'v4' in st.session_state.planos_seleccionados:
+        del st.session_state.planos_seleccionados['v4']
 
 def ir_grupo_anterior_v3():
     """Ir al grupo anterior en v3"""
