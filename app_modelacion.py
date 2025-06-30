@@ -834,4 +834,3 @@ if st.session_state.pagina == 'bienvenida':
     mostrar_bienvenida()
 else:
     mostrar_visualizador()
-
