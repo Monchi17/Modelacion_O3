@@ -482,41 +482,41 @@ def mostrar_seleccion_v3(df_filtrado):
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
-        # Mostrar progreso
-        progreso_texto = []
-        for i in range(1, 4):
-            if i < grupo_actual:
-                plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-                progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-            elif i == grupo_actual:
-                progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-            else:
-                progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        # # Mostrar progreso
+        # progreso_texto = []
+        # for i in range(1, 4):
+        #     if i < grupo_actual:
+        #         plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+        #     elif i == grupo_actual:
+        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+        #     else:
+        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
         
-        st.markdown("**Progreso:**")
-        for texto in progreso_texto:
-            st.markdown(f"- {texto}")
+        # st.markdown("**Progreso:**")
+        # for texto in progreso_texto:
+        #     st.markdown(f"- {texto}")
         
-        # Botones de navegación
-        col1, col2, col3 = st.columns([1, 2, 1])
+        # # Botones de navegación
+        # col1, col2, col3 = st.columns([1, 2, 1])
         
-        with col1:
-            if grupo_actual > 1:
-                if st.button("⬅️ Grupo Anterior"):
-                    ir_grupo_anterior_v3()
-                    st.rerun()
+        # with col1:
+        #     if grupo_actual > 1:
+        #         if st.button("⬅️ Grupo Anterior"):
+        #             ir_grupo_anterior_v3()
+        #             st.rerun()
         
-        with col2:
-            if st.button("🔄 Reiniciar Todo"):
-                reiniciar_seleccion_v3()
-                st.rerun()
+        # with col2:
+        #     if st.button("🔄 Reiniciar Todo"):
+        #         reiniciar_seleccion_v3()
+        #         st.rerun()
         
-        with col3:
-            # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
-            if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
-                if st.button("➡️ Siguiente Grupo"):
-                    st.session_state.v3_grupo_actual += 1
-                    st.rerun()
+        # with col3:
+        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
+        #     if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
+        #         if st.button("➡️ Siguiente Grupo"):
+        #             st.session_state.v3_grupo_actual += 1
+        #             st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
