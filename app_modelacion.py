@@ -326,20 +326,20 @@ def mostrar_seleccion_v3(df_filtrado):
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
-        # Mostrar progreso
-        progreso_texto = []
-        for i in range(1, 4):
-            if i < grupo_actual:
-                plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-                progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-            elif i == grupo_actual:
-                progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-            else:
-                progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
+        # # Mostrar progreso
+        # progreso_texto = []
+        # for i in range(1, 4):
+        #     if i < grupo_actual:
+        #         plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
+        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
+        #     elif i == grupo_actual:
+        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
+        #     else:
+        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
         
-        st.markdown("**Progreso:**")
-        for texto in progreso_texto:
-            st.markdown(f"- {texto}")
+        # st.markdown("**Progreso:**")
+        # for texto in progreso_texto:
+        #     st.markdown(f"- {texto}")
         
         # # Botones de navegación
         # col1, col2, col3 = st.columns([1, 2, 1])
@@ -411,10 +411,10 @@ def mostrar_seleccion_v3(df_filtrado):
         
         st.success(f"Finalistas: {', '.join(planos_finalistas)}")
         
-        # Botón para volver al grupo anterior
-        if st.button("⬅️ Volver al Grupo 3"):
-            ir_grupo_anterior_v3()
-            st.rerun()
+        # # Botón para volver al grupo anterior
+        # if st.button("⬅️ Volver al Grupo 3"):
+        #     ir_grupo_anterior_v3()
+        #     st.rerun()
         
         # Mostrar los 3 planos finalistas
         cols = st.columns(3)
