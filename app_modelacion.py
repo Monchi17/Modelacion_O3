@@ -5,6 +5,7 @@ from matplotlib.patches import Polygon
 import json
 import numpy as np
 import os
+from datetime import datetime
 
 # IMPORTANTE: st.set_page_config debe estar al inicio
 st.set_page_config(page_title="Visualizador de Planos", layout="wide")
@@ -368,6 +369,61 @@ def seleccionar_plano(version, plano_id, datos_plano):
         'datos': datos_plano
     }
     st.success(f"Plano {plano_id} de la versión {version} seleccionado correctamente")
+
+def guardar_datos_usuario_excel(datos_usuario, selecciones):
+    """
+    Guarda los datos del usuario y sus selecciones en un archivo Excel.
+    Crea el archivo si no existe, o agrega los datos si ya existe.
+    """
+    archivo_resultados = "resultados_usuarios.xlsx"
+    
+    try:
+        # Preparar los datos para guardar
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Crear el registro del usuario
+        registro = {
+            'Timestamp': timestamp,
+            'Nombre': datos_usuario.get('nombre', ''),
+            'Profesion': datos_usuario.get('profesion', ''),
+            'Experiencia_Anos': datos_usuario.get('experiencia', 0),
+            'Institucion': datos_usuario.get('institucion', ''),
+            'Correo': datos_usuario.get('correo', ''),
+            'Telefono': datos_usuario.get('telefono', ''),
+        }
+        
+        # Agregar las selecciones de cada versión
+        versiones = ['v1', 'v2', 'v3', 'v4', 'v5']
+        for version in versiones:
+            if version in selecciones:
+                registro[f'Seleccion_{version.upper()}'] = selecciones[version]['plano_id']
+            else:
+                registro[f'Seleccion_{version.upper()}'] = 'No seleccionado'
+        
+        # Convertir a DataFrame
+        df_nuevo = pd.DataFrame([registro])
+        
+        # Verificar si el archivo ya existe
+        if os.path.exists(archivo_resultados):
+            # Leer el archivo existente y agregar los nuevos datos
+            try:
+                df_existente = pd.read_excel(archivo_resultados)
+                df_final = pd.concat([df_existente, df_nuevo], ignore_index=True)
+            except Exception as e:
+                # Si hay error leyendo el archivo existente, crear uno nuevo
+                st.warning(f"Error leyendo archivo existente: {e}. Creando archivo nuevo.")
+                df_final = df_nuevo
+        else:
+            # Crear archivo nuevo
+            df_final = df_nuevo
+        
+        # Guardar el archivo
+        df_final.to_excel(archivo_resultados, index=False)
+        
+        return True, f"Datos guardados correctamente en {archivo_resultados}"
+        
+    except Exception as e:
+        return False, f"Error al guardar los datos: {str(e)}"
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
