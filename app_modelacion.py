@@ -324,7 +324,7 @@ def mostrar_seleccion_v3(df_filtrado):
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
-        st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
+        #st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
         # # Mostrar progreso
         # progreso_texto = []
