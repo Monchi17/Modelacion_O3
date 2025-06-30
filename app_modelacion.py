@@ -341,26 +341,26 @@ def mostrar_seleccion_v3(df_filtrado):
         for texto in progreso_texto:
             st.markdown(f"- {texto}")
         
-        # Botones de navegación
-        col1, col2, col3 = st.columns([1, 2, 1])
+        # # Botones de navegación
+        # col1, col2, col3 = st.columns([1, 2, 1])
         
-        with col1:
-            if grupo_actual > 1:
-                if st.button("⬅️ Grupo Anterior"):
-                    ir_grupo_anterior_v3()
-                    st.rerun()
+        # with col1:
+        #     if grupo_actual > 1:
+        #         if st.button("⬅️ Grupo Anterior"):
+        #             ir_grupo_anterior_v3()
+        #             st.rerun()
         
-        with col2:
-            if st.button("🔄 Reiniciar Todo"):
-                reiniciar_seleccion_v3()
-                st.rerun()
+        # with col2:
+        #     if st.button("🔄 Reiniciar Todo"):
+        #         reiniciar_seleccion_v3()
+        #         st.rerun()
         
-        with col3:
-            # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
-            if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
-                if st.button("➡️ Siguiente Grupo"):
-                    st.session_state.v3_grupo_actual += 1
-                    st.rerun()
+        # with col3:
+        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
+        #     if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
+        #         if st.button("➡️ Siguiente Grupo"):
+        #             st.session_state.v3_grupo_actual += 1
+        #             st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
