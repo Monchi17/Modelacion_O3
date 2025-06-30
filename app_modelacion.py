@@ -31,6 +31,13 @@ if 'v4_grupo_actual' not in st.session_state:
 if 'v4_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v4_seleccionados_por_grupo = {}  # {grupo: plano_id}
 
+# Inicializar estado para las rondas de selección de v5
+if 'v5_grupo_actual' not in st.session_state:
+    st.session_state.v5_grupo_actual = 1  # Grupo 1, 2, 3, 4, 5, 6, o 7 (final)
+
+if 'v5_seleccionados_por_grupo' not in st.session_state:
+    st.session_state.v5_seleccionados_por_grupo = {}  # {grupo: plano_id}
+
 def mostrar_bienvenida():
     """Página de bienvenida con formulario de usuario"""
     # Título centrado y estilizado
@@ -278,6 +285,30 @@ def seleccionar_plano_v4(plano_id, datos_plano, grupo):
         }
         st.success(f"¡Plano {plano_id} seleccionado como ganador de v4!")
 
+def seleccionar_plano_v5(plano_id, datos_plano, grupo):
+    """Función especial para manejar la selección de planos v5 con sistema de grupos"""
+    if grupo <= 6:  # Grupos 1, 2, 3, 4, 5, 6
+        st.session_state.v5_seleccionados_por_grupo[grupo] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"Plano {plano_id} seleccionado del Grupo {grupo}")
+        
+        # Avanzar al siguiente grupo automáticamente
+        if grupo < 6:
+            st.session_state.v5_grupo_actual = grupo + 1
+            st.info(f"Pasando al Grupo {grupo + 1}")
+        else:
+            st.session_state.v5_grupo_actual = 7  # Ir a la ronda final
+            st.info("¡Todos los grupos completados! Ahora elige el plano ganador.")
+    
+    elif grupo == 7:  # Ronda final
+        st.session_state.planos_seleccionados['v5'] = {
+            'plano_id': plano_id,
+            'datos': datos_plano
+        }
+        st.success(f"¡Plano {plano_id} seleccionado como ganador de v5!")
+
 def reiniciar_seleccion_v3():
     """Reiniciar la selección de v3 para empezar de nuevo"""
     st.session_state.v3_grupo_actual = 1
@@ -291,6 +322,13 @@ def reiniciar_seleccion_v4():
     st.session_state.v4_seleccionados_por_grupo = {}
     if 'v4' in st.session_state.planos_seleccionados:
         del st.session_state.planos_seleccionados['v4']
+
+def reiniciar_seleccion_v5():
+    """Reiniciar la selección de v5 para empezar de nuevo"""
+    st.session_state.v5_grupo_actual = 1
+    st.session_state.v5_seleccionados_por_grupo = {}
+    if 'v5' in st.session_state.planos_seleccionados:
+        del st.session_state.planos_seleccionados['v5']
 
 def ir_grupo_anterior_v3():
     """Ir al grupo anterior en v3"""
@@ -311,6 +349,16 @@ def ir_grupo_anterior_v4():
             # Solo eliminar la selección final si existe
             if 'v4' in st.session_state.planos_seleccionados:
                 del st.session_state.planos_seleccionados['v4']
+
+def ir_grupo_anterior_v5():
+    """Ir al grupo anterior en v5"""
+    if st.session_state.v5_grupo_actual > 1:
+        st.session_state.v5_grupo_actual -= 1
+        # Si volvemos de la ronda final, no eliminar las selecciones previas
+        if st.session_state.v5_grupo_actual == 6:
+            # Solo eliminar la selección final si existe
+            if 'v5' in st.session_state.planos_seleccionados:
+                del st.session_state.planos_seleccionados['v5']
 
 def seleccionar_plano(version, plano_id, datos_plano):
     """Función para manejar la selección de un plano (para versiones diferentes a v3)"""
@@ -347,6 +395,8 @@ def mostrar_visualizador():
                 mostrar_seleccion_v3(df_filtrado)
             elif version_seleccionada == "v4":
                 mostrar_seleccion_v4(df_filtrado)
+            elif version_seleccionada == "v5":
+                mostrar_seleccion_v5(df_filtrado)
             else:
                 # Lógica normal para otras versiones
                 mostrar_seleccion_normal(df_filtrado, version_seleccionada)
@@ -633,8 +683,102 @@ def mostrar_seleccion_v4(df_filtrado):
                             seleccionar_plano_v4(plano_id, datos_plano.to_dict(), 4)
                             st.rerun()
 
+def mostrar_seleccion_v5(df_filtrado):
+    """Lógica especial para v5 con sistema de grupos"""
+    planos_ids = sorted(df_filtrado['Plano_ID'].unique())
+    grupo_actual = st.session_state.v5_grupo_actual
+    
+    # Dividir los 24 planos en 6 grupos de 4
+    grupos_planos = {
+        1: planos_ids[0:4],   # Planos 1-4
+        2: planos_ids[4:8],   # Planos 5-8
+        3: planos_ids[8:12],  # Planos 9-12
+        4: planos_ids[12:16], # Planos 13-16
+        5: planos_ids[16:20], # Planos 17-20
+        6: planos_ids[20:24]  # Planos 21-24
+    }
+    
+    if grupo_actual <= 6:
+        # Mostrar grupo actual (1, 2, 3, 4, 5, o 6)
+        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        
+        # Mostrar los 4 planos del grupo actual
+        planos_grupo = grupos_planos[grupo_actual]
+        cols = st.columns(4)
+        
+        for i, plano_id in enumerate(planos_grupo):
+            datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+            
+            with cols[i]:
+                st.write(f"### Plano {plano_id}")
+                
+                # Visualizar plano
+                titulo = f"Plano {plano_id}"
+                fig = visualizar_plano(datos_plano, titulo, "v5")
+                if fig:
+                    st.pyplot(fig, use_container_width=True)
+                
+                # Verificar si este plano está seleccionado para este grupo
+                plano_seleccionado = st.session_state.v5_seleccionados_por_grupo.get(grupo_actual, {}).get('plano_id')
+                is_selected = plano_seleccionado == plano_id
+                
+                if is_selected:
+                    st.success("✅ SELECCIONADO")
+                    if st.button(f"Cambiar Selección", key=f"change_v5_g{grupo_actual}_{plano_id}"):
+                        # Eliminar la selección actual
+                        if grupo_actual in st.session_state.v5_seleccionados_por_grupo:
+                            del st.session_state.v5_seleccionados_por_grupo[grupo_actual]
+                        st.rerun()
+                else:
+                    # Solo permitir seleccionar si no hay otro plano seleccionado en este grupo
+                    puede_seleccionar = grupo_actual not in st.session_state.v5_seleccionados_por_grupo
+                    
+                    if st.button(f"Seleccionar", 
+                                key=f"select_v5_g{grupo_actual}_{plano_id}",
+                                disabled=not puede_seleccionar):
+                        seleccionar_plano_v5(plano_id, datos_plano.to_dict(), grupo_actual)
+                        st.rerun()
+    
+    else:  # grupo_actual == 7 (Ronda final)
+        # Mostrar los 6 planos seleccionados
+        planos_finalistas = []
+        for grupo in [1, 2, 3, 4, 5, 6]:
+            if grupo in st.session_state.v5_seleccionados_por_grupo:
+                plano_info = st.session_state.v5_seleccionados_por_grupo[grupo]
+                planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
+        
+        # Mostrar los 6 planos finalistas en 2 filas de 3
+        for fila in range(2):
+            cols = st.columns(3)
+            for col in range(3):
+                grupo_idx = fila * 3 + col + 1
+                if grupo_idx <= 6 and grupo_idx in st.session_state.v5_seleccionados_por_grupo:
+                    plano_info = st.session_state.v5_seleccionados_por_grupo[grupo_idx]
+                    plano_id = plano_info['plano_id']
+                    datos_plano = df_filtrado[df_filtrado['Plano_ID'] == plano_id].iloc[0]
+                    
+                    with cols[col]:
+                        st.write(f"### Plano {plano_id}")
+                        
+                        # Visualizar plano
+                        titulo = f"Plano {plano_id}"
+                        fig = visualizar_plano(datos_plano, titulo, "v5")
+                        if fig:
+                            st.pyplot(fig, use_container_width=True)
+                        
+                        # Verificar si es el ganador final
+                        is_winner = ('v5' in st.session_state.planos_seleccionados and 
+                                   st.session_state.planos_seleccionados['v5']['plano_id'] == plano_id)
+                        
+                        if is_winner:
+                            st.success("✅ SELECCIONADO")
+                        else:
+                            if st.button(f"Seleccionar", key=f"select_v5_final_{plano_id}"):
+                                seleccionar_plano_v5(plano_id, datos_plano.to_dict(), 7)
+                                st.rerun()
+
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
-    """Lógica normal para versiones diferentes a v3 y v4"""
+    """Lógica normal para versiones diferentes a v3, v4 y v5"""
     st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
     
     # Obtener todos los planos de esta versión
@@ -648,9 +792,6 @@ def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     elif version_seleccionada == "v2":
         num_columnas = 4
         num_filas = 3  # 3 filas para v2 (12 planos)
-    elif version_seleccionada == "v5":
-        num_columnas = 4
-        num_filas = 6  # 6 filas para v5
     else:
         num_columnas = 2
         num_filas = (total_planos + num_columnas - 1) // num_columnas
@@ -668,10 +809,7 @@ def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
                 
                 with cols[col]:
                     # Para versiones con muchos planos, hacer encabezados más compactos
-                    if version_seleccionada in ["v5"]:
-                        st.write(f"#### Plano {plano_id}")
-                    else:
-                        st.write(f"### Plano {plano_id}")
+                    st.write(f"### Plano {plano_id}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
