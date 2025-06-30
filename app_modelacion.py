@@ -440,7 +440,7 @@ def mostrar_seleccion_v3(df_filtrado):
                                st.session_state.planos_seleccionados['v3']['plano_id'] == plano_id)
                     
                     if is_winner:
-                        st.success("🏆 GANADOR FINAL")
+                        st.success("✅ SELECCIONADO")
                     else:
                         if st.button(f"Seleccionar", key=f"select_v3_final_{plano_id}"):
                             seleccionar_plano_v3(plano_id, datos_plano.to_dict(), 4)
