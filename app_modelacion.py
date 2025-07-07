@@ -468,12 +468,12 @@ def mostrar_boton_finalizar():
                     type="primary",
                     help="Guardar todas las selecciones y finalizar la evaluación"):
                 
-            # Verificar que tenemos los datos del usuario
-            if 'datos_usuario' in st.session_state:
-                with st.spinner("Guardando respuestas..."):
-                    exito, mensaje = guardar_datos_usuario_excel(
-                         st.session_state.datos_usuario, 
-                        st.session_state.planos_seleccionados)
+                # Verificar que tenemos los datos del usuario
+                if 'datos_usuario' in st.session_state:
+                    with st.spinner("Guardando respuestas..."):
+                        exito, mensaje = guardar_datos_usuario_excel(
+                             st.session_state.datos_usuario, 
+                            st.session_state.planos_seleccionados)
                     
                             
                     else:
