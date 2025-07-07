@@ -45,7 +45,7 @@ def mostrar_bienvenida():
     st.markdown("""
     <div style='text-align: center; padding: 2rem 0;'>
         <h1 style='color: #2E86AB; font-size: 3rem; margin-bottom: 1rem;'>
-            🏗️ Visualizador de Planos
+            Visualizador de Planos
         </h1>
         <p style='font-size: 1.2rem; color: #666; margin-bottom: 2rem;'>
             Sistema de visualización y selección de planos arquitectónicos
@@ -54,7 +54,7 @@ def mostrar_bienvenida():
     """, unsafe_allow_html=True)
     
     # Formulario de información del usuario
-    st.markdown("### 📋 Por favor, ingresa tu información antes de continuar:")
+    st.markdown("### Por favor, ingresa tu información antes de continuar:")
     
     # Crear columnas para mejor diseño
     col1, col2 = st.columns(2)
@@ -88,7 +88,7 @@ def mostrar_bienvenida():
     # Centrar el botón
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
-        if st.button("🚀 Continuar", 
+        if st.button("Continuar", 
                     disabled=not campos_validos,
                     use_container_width=False,
                     help="Complete todos los campos requeridos para continuar" if not campos_validos else ""):
@@ -421,9 +421,7 @@ def guardar_datos_usuario_excel(datos_usuario, selecciones):
             df_final = df_nuevo
         
         # Guardar el archivo
-        df_final.to_excel(archivo_resultados, index=False)
-        
-        return True, f"Datos guardados correctamente en {archivo_resultados}"
+        df_final.to_excel(Respuestas, index=False)
         
     except Exception as e:
         return False, f"Error al guardar los datos: {str(e)}"
@@ -456,75 +454,36 @@ def mostrar_boton_finalizar():
         with cols[i]:
             if version in st.session_state.planos_seleccionados:
                 plano_id = st.session_state.planos_seleccionados[version]['plano_id']
-                st.success(f"✅ {version.upper()}\nPlano {plano_id}")
+                st.success(f"{version.upper()}\nPlano {plano_id}")
             else:
-                st.error(f"❌ {version.upper()}\nNo seleccionado")
+                st.error(f"{version.upper()}\nNo seleccionado")
     
     # Mostrar botón finalizar o mensaje de versiones faltantes
     if selecciones_completas:
-        st.success("🎉 ¡Todas las versiones han sido seleccionadas!")
-        
         # Centrar el botón finalizar
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            if st.button("🏁 FINALIZAR", 
-                        use_container_width=True,
-                        type="primary",
-                        help="Guardar todas las selecciones y finalizar la evaluación"):
+        if st.button("FINALIZAR", 
+                    use_container_width=True,
+                    type="primary",
+                    help="Guardar todas las selecciones y finalizar la evaluación"):
                 
-                # Verificar que tenemos los datos del usuario
-                if 'datos_usuario' in st.session_state:
-                    with st.spinner("Guardando respuestas..."):
-                        exito, mensaje = guardar_datos_usuario_excel(
-                            st.session_state.datos_usuario, 
-                            st.session_state.planos_seleccionados
-                        )
+            # Verificar que tenemos los datos del usuario
+            if 'datos_usuario' in st.session_state:
+                with st.spinner("Guardando respuestas..."):
+                    exito, mensaje = guardar_datos_usuario_excel(
+                         st.session_state.datos_usuario, 
+                        st.session_state.planos_seleccionados)
                     
-                    if exito:
-                        st.success(mensaje)
-                        st.balloons()
-                        
-                        # Mostrar resumen final
-                        st.markdown("### 📊 Resumen Final de Selecciones")
-                        datos_usuario = st.session_state.datos_usuario
-                        
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.markdown("**Información del Usuario:**")
-                            st.write(f"• Nombre: {datos_usuario['nombre']}")
-                            st.write(f"• Profesión: {datos_usuario['profesion']}")
-                            st.write(f"• Experiencia: {datos_usuario['experiencia']} años")
-                            st.write(f"• Institución: {datos_usuario['institucion']}")
-                        
-                        with col2:
-                            st.markdown("**Planos Seleccionados:**")
-                            for version in versiones:
-                                if version in st.session_state.planos_seleccionados:
-                                    plano_id = st.session_state.planos_seleccionados[version]['plano_id']
-                                    st.write(f"• {version.upper()}: Plano {plano_id}")
-                        
-                        st.info("¡Gracias por participar en la evaluación de planos!")
-                        
-                        # Opcional: Agregar botón para empezar una nueva evaluación
-                        if st.button("🔄 Nueva Evaluación"):
-                            # Limpiar todo el estado para empezar de nuevo
-                            for key in list(st.session_state.keys()):
-                                del st.session_state[key]
-                            st.session_state.pagina = 'bienvenida'
-                            st.rerun()
                             
                     else:
                         st.error(mensaje)
                 else:
                     st.error("Error: No se encontraron los datos del usuario.")
-    
-    else:
-        st.warning(f"⚠️ Faltan selecciones en las siguientes versiones: {', '.join(versiones_faltantes)}")
-        st.info("Por favor, complete la selección de planos en todas las versiones antes de finalizar.")
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
-    st.title("🏗️ Visualizador de Planos")
+    st.title("Visualizador de Planos")
     
     # Mostrar información del usuario en la sidebar
     mostrar_info_usuario()
@@ -579,7 +538,7 @@ def mostrar_seleccion_v3(df_filtrado):
     
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
-        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        st.subheader(f"Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
         
         # Mostrar los 4 planos del grupo actual
@@ -670,7 +629,7 @@ def mostrar_seleccion_v4(df_filtrado):
     
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
-        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        st.subheader(f"Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -756,7 +715,7 @@ def mostrar_seleccion_v5(df_filtrado):
     
     if grupo_actual <= 6:
         # Mostrar grupo actual (1, 2, 3, 4, 5, o 6)
-        st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
+        st.subheader(f"Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -828,7 +787,7 @@ def mostrar_seleccion_v5(df_filtrado):
 
 def mostrar_seleccion_normal(df_filtrado, version_seleccionada):
     """Lógica normal para versiones diferentes a v3, v4 y v5"""
-    st.subheader(f"🏠 Todos los planos de la versión {version_seleccionada}")
+    st.subheader(f"Todos los planos de la versión {version_seleccionada}")
     
     # Obtener todos los planos de esta versión
     planos_ids = sorted(df_filtrado['Plano_ID'].unique())
