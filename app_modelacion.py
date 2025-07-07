@@ -478,8 +478,7 @@ def mostrar_boton_finalizar():
                             
                 else:
                     st.error(mensaje)
-            else:
-                st.error("Error: No se encontraron los datos del usuario.")
+    
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
