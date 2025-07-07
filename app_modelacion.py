@@ -463,7 +463,7 @@ def mostrar_boton_finalizar():
         # Centrar el botón finalizar
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-        if st.button("FINALIZAR", 
+            if st.button("FINALIZAR", 
                     use_container_width=True,
                     type="primary",
                     help="Guardar todas las selecciones y finalizar la evaluación"):
