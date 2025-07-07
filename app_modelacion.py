@@ -372,33 +372,36 @@ def seleccionar_plano(version, plano_id, datos_plano):
 
 def guardar_datos_usuario_excel(datos_usuario, selecciones):
     """
-    Guarda los datos del usuario y sus selecciones en un archivo Excel.
+    Guarda los datos del usuario y sus selecciones en un archivo Excel llamado 'Respuestas.xlsx'.
     Crea el archivo si no existe, o agrega los datos si ya existe.
     """
-    archivo_resultados = "resultados_usuarios.xlsx"
+    archivo_resultados = "Respuestas.xlsx"
     
     try:
-        # Preparar los datos para guardar
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Obtener el siguiente número de usuario
+        numero_usuario = 1
+        if os.path.exists(archivo_resultados):
+            try:
+                df_existente = pd.read_excel(archivo_resultados)
+                numero_usuario = len(df_existente) + 1
+            except:
+                numero_usuario = 1
         
-        # Crear el registro del usuario
+        # Crear el registro del usuario según el formato solicitado
         registro = {
-            'Timestamp': timestamp,
-            'Nombre': datos_usuario.get('nombre', ''),
-            'Profesion': datos_usuario.get('profesion', ''),
-            'Experiencia_Anos': datos_usuario.get('experiencia', 0),
-            'Institucion': datos_usuario.get('institucion', ''),
-            'Correo': datos_usuario.get('correo', ''),
+            'Numero': numero_usuario,
+            'Nombre completo': datos_usuario.get('nombre', ''),
+            'Profesión': datos_usuario.get('profesion', ''),
+            'Años de experiencia': datos_usuario.get('experiencia', 0),
+            'Institución': datos_usuario.get('institucion', ''),
+            'Correo electrónico': datos_usuario.get('correo', ''),
             'Telefono': datos_usuario.get('telefono', ''),
+            'V1': selecciones.get('v1', {}).get('plano_id', 'No seleccionado'),
+            'V2': selecciones.get('v2', {}).get('plano_id', 'No seleccionado'),
+            'V3': selecciones.get('v3', {}).get('plano_id', 'No seleccionado'),
+            'V4': selecciones.get('v4', {}).get('plano_id', 'No seleccionado'),
+            'V5': selecciones.get('v5', {}).get('plano_id', 'No seleccionado')
         }
-        
-        # Agregar las selecciones de cada versión
-        versiones = ['v1', 'v2', 'v3', 'v4', 'v5']
-        for version in versiones:
-            if version in selecciones:
-                registro[f'Seleccion_{version.upper()}'] = selecciones[version]['plano_id']
-            else:
-                registro[f'Seleccion_{version.upper()}'] = 'No seleccionado'
         
         # Convertir a DataFrame
         df_nuevo = pd.DataFrame([registro])
@@ -424,6 +427,100 @@ def guardar_datos_usuario_excel(datos_usuario, selecciones):
         
     except Exception as e:
         return False, f"Error al guardar los datos: {str(e)}"
+
+def verificar_selecciones_completas():
+    """Verifica si el usuario ha seleccionado planos de todas las versiones disponibles"""
+    versiones_requeridas = ['v1', 'v2', 'v3', 'v4', 'v5']
+    selecciones_completas = True
+    versiones_faltantes = []
+    
+    for version in versiones_requeridas:
+        if version not in st.session_state.planos_seleccionados:
+            selecciones_completas = False
+            versiones_faltantes.append(version.upper())
+    
+    return selecciones_completas, versiones_faltantes
+
+def mostrar_boton_finalizar():
+    """Muestra el botón finalizar si todas las versiones han sido seleccionadas"""
+    selecciones_completas, versiones_faltantes = verificar_selecciones_completas()
+    
+    st.markdown("---")
+    st.subheader("📋 Estado de las Selecciones")
+    
+    # Mostrar estado de cada versión
+    versiones = ['v1', 'v2', 'v3', 'v4', 'v5']
+    cols = st.columns(5)
+    
+    for i, version in enumerate(versiones):
+        with cols[i]:
+            if version in st.session_state.planos_seleccionados:
+                plano_id = st.session_state.planos_seleccionados[version]['plano_id']
+                st.success(f"✅ {version.upper()}\nPlano {plano_id}")
+            else:
+                st.error(f"❌ {version.upper()}\nNo seleccionado")
+    
+    # Mostrar botón finalizar o mensaje de versiones faltantes
+    if selecciones_completas:
+        st.success("🎉 ¡Todas las versiones han sido seleccionadas!")
+        
+        # Centrar el botón finalizar
+        col1, col2, col3 = st.columns([2, 1, 2])
+        with col2:
+            if st.button("🏁 FINALIZAR", 
+                        use_container_width=True,
+                        type="primary",
+                        help="Guardar todas las selecciones y finalizar la evaluación"):
+                
+                # Verificar que tenemos los datos del usuario
+                if 'datos_usuario' in st.session_state:
+                    with st.spinner("Guardando respuestas..."):
+                        exito, mensaje = guardar_datos_usuario_excel(
+                            st.session_state.datos_usuario, 
+                            st.session_state.planos_seleccionados
+                        )
+                    
+                    if exito:
+                        st.success(mensaje)
+                        st.balloons()
+                        
+                        # Mostrar resumen final
+                        st.markdown("### 📊 Resumen Final de Selecciones")
+                        datos_usuario = st.session_state.datos_usuario
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.markdown("**Información del Usuario:**")
+                            st.write(f"• Nombre: {datos_usuario['nombre']}")
+                            st.write(f"• Profesión: {datos_usuario['profesion']}")
+                            st.write(f"• Experiencia: {datos_usuario['experiencia']} años")
+                            st.write(f"• Institución: {datos_usuario['institucion']}")
+                        
+                        with col2:
+                            st.markdown("**Planos Seleccionados:**")
+                            for version in versiones:
+                                if version in st.session_state.planos_seleccionados:
+                                    plano_id = st.session_state.planos_seleccionados[version]['plano_id']
+                                    st.write(f"• {version.upper()}: Plano {plano_id}")
+                        
+                        st.info("¡Gracias por participar en la evaluación de planos!")
+                        
+                        # Opcional: Agregar botón para empezar una nueva evaluación
+                        if st.button("🔄 Nueva Evaluación"):
+                            # Limpiar todo el estado para empezar de nuevo
+                            for key in list(st.session_state.keys()):
+                                del st.session_state[key]
+                            st.session_state.pagina = 'bienvenida'
+                            st.rerun()
+                            
+                    else:
+                        st.error(mensaje)
+                else:
+                    st.error("Error: No se encontraron los datos del usuario.")
+    
+    else:
+        st.warning(f"⚠️ Faltan selecciones en las siguientes versiones: {', '.join(versiones_faltantes)}")
+        st.info("Por favor, complete la selección de planos en todas las versiones antes de finalizar.")
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
@@ -464,6 +561,9 @@ def mostrar_visualizador():
         Esta aplicación requiere un archivo llamado 'planos_ploteo.xlsx' en el mismo directorio.
         Asegúrate de que el archivo esté correctamente formateado con columnas para 'Version', 'Plano_ID', etc.
         """)
+    
+    # Mostrar el botón finalizar al final de la página
+    mostrar_boton_finalizar()
 
 def mostrar_seleccion_v3(df_filtrado):
     """Lógica especial para v3 con sistema de grupos"""
@@ -481,42 +581,6 @@ def mostrar_seleccion_v3(df_filtrado):
         # Mostrar grupo actual (1, 2, o 3)
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
         st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
-        
-        # # Mostrar progreso
-        # progreso_texto = []
-        # for i in range(1, 4):
-        #     if i < grupo_actual:
-        #         plano_sel = st.session_state.v3_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-        #     elif i == grupo_actual:
-        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-        #     else:
-        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
-        
-        # st.markdown("**Progreso:**")
-        # for texto in progreso_texto:
-        #     st.markdown(f"- {texto}")
-        
-        # # Botones de navegación
-        # col1, col2, col3 = st.columns([1, 2, 1])
-        
-        # with col1:
-        #     if grupo_actual > 1:
-        #         if st.button("⬅️ Grupo Anterior"):
-        #             ir_grupo_anterior_v3()
-        #             st.rerun()
-        
-        # with col2:
-        #     if st.button("🔄 Reiniciar Todo"):
-        #         reiniciar_seleccion_v3()
-        #         st.rerun()
-        
-        # with col3:
-        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
-        #     if grupo_actual in st.session_state.v3_seleccionados_por_grupo and grupo_actual < 3:
-        #         if st.button("➡️ Siguiente Grupo"):
-        #             st.session_state.v3_grupo_actual += 1
-        #             st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -556,21 +620,12 @@ def mostrar_seleccion_v3(df_filtrado):
                         st.rerun()
     
     else:  # grupo_actual == 4 (Ronda final)
-        #st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v3")
-        
         # Mostrar los 3 planos seleccionados
         planos_finalistas = []
         for grupo in [1, 2, 3]:
             if grupo in st.session_state.v3_seleccionados_por_grupo:
                 plano_info = st.session_state.v3_seleccionados_por_grupo[grupo]
                 planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
-        
-        #st.success(f"Finalistas: {', '.join(planos_finalistas)}")
-        
-        # # Botón para volver al grupo anterior
-        # if st.button("⬅️ Volver al Grupo 3"):
-        #     ir_grupo_anterior_v3()
-        #     st.rerun()
         
         # Mostrar los 3 planos finalistas
         cols = st.columns(3)
@@ -583,7 +638,6 @@ def mostrar_seleccion_v3(df_filtrado):
                 
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
-                    #st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -617,43 +671,6 @@ def mostrar_seleccion_v4(df_filtrado):
     if grupo_actual <= 3:
         # Mostrar grupo actual (1, 2, o 3)
         st.subheader(f"🏠 Grupo {grupo_actual}: Selecciona 1 plano de este grupo")
-        #st.info(f"Planos del Grupo {grupo_actual}: {len(grupos_planos[grupo_actual])} planos")
-        
-        # # Mostrar progreso
-        # progreso_texto = []
-        # for i in range(1, 4):
-        #     if i < grupo_actual:
-        #         plano_sel = st.session_state.v4_seleccionados_por_grupo.get(i, {}).get('plano_id', 'N/A')
-        #         progreso_texto.append(f"✅ Grupo {i}: Plano {plano_sel}")
-        #     elif i == grupo_actual:
-        #         progreso_texto.append(f"🔄 Grupo {i}: Seleccionando...")
-        #     else:
-        #         progreso_texto.append(f"⏳ Grupo {i}: Pendiente")
-        
-        # st.markdown("**Progreso:**")
-        # for texto in progreso_texto:
-        #     st.markdown(f"- {texto}")
-        
-        # # Botones de navegación
-        # col1, col2, col3 = st.columns([1, 2, 1])
-        
-        # with col1:
-        #     if grupo_actual > 1:
-        #         if st.button("⬅️ Grupo Anterior"):
-        #             ir_grupo_anterior_v4()
-        #             st.rerun()
-        
-        # with col2:
-        #     if st.button("🔄 Reiniciar Todo"):
-        #         reiniciar_seleccion_v4()
-        #         st.rerun()
-        
-        # with col3:
-        #     # Solo mostrar "Siguiente" si ya seleccionó un plano en este grupo
-        #     if grupo_actual in st.session_state.v4_seleccionados_por_grupo and grupo_actual < 3:
-        #         if st.button("➡️ Siguiente Grupo"):
-        #             st.session_state.v4_grupo_actual += 1
-        #             st.rerun()
         
         # Mostrar los 4 planos del grupo actual
         planos_grupo = grupos_planos[grupo_actual]
@@ -693,22 +710,6 @@ def mostrar_seleccion_v4(df_filtrado):
                         st.rerun()
     
     else:  # grupo_actual == 4 (Ronda final)
-        #st.subheader("🏆 Ronda Final: Selecciona el plano ganador de v4")
-        
-        # Mostrar los 3 planos seleccionados
-        planos_finalistas = []
-        for grupo in [1, 2, 3]:
-            if grupo in st.session_state.v4_seleccionados_por_grupo:
-                plano_info = st.session_state.v4_seleccionados_por_grupo[grupo]
-                planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
-        
-       # st.success(f"Finalistas: {', '.join(planos_finalistas)}")
-        
-        # # Botón para volver al grupo anterior
-        # if st.button("⬅️ Volver al Grupo 3"):
-        #     ir_grupo_anterior_v4()
-        #     st.rerun()
-        
         # Mostrar los 3 planos finalistas
         cols = st.columns(3)
         
@@ -720,7 +721,6 @@ def mostrar_seleccion_v4(df_filtrado):
                 
                 with cols[i]:
                     st.write(f"### Plano {plano_id}")
-                    #st.caption(f"Ganador del Grupo {grupo}")
                     
                     # Visualizar plano
                     titulo = f"Plano {plano_id}"
@@ -796,13 +796,6 @@ def mostrar_seleccion_v5(df_filtrado):
                         st.rerun()
     
     else:  # grupo_actual == 7 (Ronda final)
-        # Mostrar los 6 planos seleccionados
-        planos_finalistas = []
-        for grupo in [1, 2, 3, 4, 5, 6]:
-            if grupo in st.session_state.v5_seleccionados_por_grupo:
-                plano_info = st.session_state.v5_seleccionados_por_grupo[grupo]
-                planos_finalistas.append(f"Plano {plano_info['plano_id']} (Grupo {grupo})")
-        
         # Mostrar los 6 planos finalistas en 2 filas de 3
         for fila in range(2):
             cols = st.columns(3)
