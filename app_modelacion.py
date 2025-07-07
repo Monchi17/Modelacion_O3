@@ -473,9 +473,7 @@ def mostrar_boton_finalizar():
                     with st.spinner("Guardando respuestas..."):
                         exito, mensaje = guardar_datos_usuario_excel(
                              st.session_state.datos_usuario, 
-                            st.session_state.planos_seleccionados)
-                    
-                            
+                            st.session_state.planos_seleccionados)      
                 else:
                     st.error(mensaje)
     
