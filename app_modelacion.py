@@ -476,10 +476,10 @@ def mostrar_boton_finalizar():
                             st.session_state.planos_seleccionados)
                     
                             
-                    else:
-                        st.error(mensaje)
                 else:
-                    st.error("Error: No se encontraron los datos del usuario.")
+                    st.error(mensaje)
+            else:
+                st.error("Error: No se encontraron los datos del usuario.")
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
