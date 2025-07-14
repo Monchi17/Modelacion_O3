@@ -370,6 +370,20 @@ def seleccionar_plano(version, plano_id, datos_plano):
     }
     st.success(f"Plano {plano_id} de la versión {version} seleccionado correctamente")
 
+
+def verificar_selecciones_completas():
+    """Verifica si el usuario ha seleccionado planos de todas las versiones disponibles"""
+    versiones_requeridas = ['v1', 'v2', 'v3', 'v4', 'v5']
+    selecciones_completas = True
+    versiones_faltantes = []
+    
+    for version in versiones_requeridas:
+        if version not in st.session_state.planos_seleccionados:
+            selecciones_completas = False
+            versiones_faltantes.append(version.upper())
+    
+    return selecciones_completas, versiones_faltantes
+
 def guardar_datos_usuario_excel(datos_usuario, selecciones):
     """
     Guarda los datos del usuario y sus selecciones en un archivo Excel llamado 'Respuestas.xlsx'.
@@ -378,6 +392,9 @@ def guardar_datos_usuario_excel(datos_usuario, selecciones):
     archivo_resultados = "Respuestas.xlsx"
     
     try:
+        # Obtener timestamp para el registro
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         # Obtener el siguiente número de usuario
         numero_usuario = 1
         if os.path.exists(archivo_resultados):
@@ -389,12 +406,13 @@ def guardar_datos_usuario_excel(datos_usuario, selecciones):
         
         # Crear el registro del usuario según el formato solicitado
         registro = {
+            'Timestamp': timestamp,
             'Numero': numero_usuario,
-            'Nombre completo': datos_usuario.get('nombre', ''),
-            'Profesión': datos_usuario.get('profesion', ''),
-            'Años de experiencia': datos_usuario.get('experiencia', 0),
-            'Institución': datos_usuario.get('institucion', ''),
-            'Correo electrónico': datos_usuario.get('correo', ''),
+            'Nombre_completo': datos_usuario.get('nombre', ''),
+            'Profesion': datos_usuario.get('profesion', ''),
+            'Anos_experiencia': datos_usuario.get('experiencia', 0),
+            'Institucion': datos_usuario.get('institucion', ''),
+            'Correo_electronico': datos_usuario.get('correo', ''),
             'Telefono': datos_usuario.get('telefono', ''),
             'V1': selecciones.get('v1', {}).get('plano_id', 'No seleccionado'),
             'V2': selecciones.get('v2', {}).get('plano_id', 'No seleccionado'),
@@ -420,24 +438,13 @@ def guardar_datos_usuario_excel(datos_usuario, selecciones):
             # Crear archivo nuevo
             df_final = df_nuevo
         
-        # Guardar el archivo
-        df_final.to_excel(Respuestas, index=False)
+        # Guardar el archivo (corregir la línea problemática)
+        df_final.to_excel(archivo_resultados, index=False)
+        
+        return True, f"Datos guardados exitosamente. Usuario #{numero_usuario} registrado."
         
     except Exception as e:
         return False, f"Error al guardar los datos: {str(e)}"
-
-def verificar_selecciones_completas():
-    """Verifica si el usuario ha seleccionado planos de todas las versiones disponibles"""
-    versiones_requeridas = ['v1', 'v2', 'v3', 'v4', 'v5']
-    selecciones_completas = True
-    versiones_faltantes = []
-    
-    for version in versiones_requeridas:
-        if version not in st.session_state.planos_seleccionados:
-            selecciones_completas = False
-            versiones_faltantes.append(version.upper())
-    
-    return selecciones_completas, versiones_faltantes
 
 def mostrar_boton_finalizar():
     """Muestra el botón finalizar si todas las versiones han sido seleccionadas"""
@@ -458,7 +465,12 @@ def mostrar_boton_finalizar():
             else:
                 st.error(f"{version.upper()}\nNo seleccionado")
     
-    # Mostrar botón finalizar o mensaje de versiones faltantes
+    # Mostrar versiones faltantes si las hay
+    if not selecciones_completas:
+        st.warning(f"⚠️ Faltan selecciones en: {', '.join(versiones_faltantes)}")
+        st.info("Completa todas las selecciones para poder finalizar.")
+    
+    # Mostrar botón finalizar solo si están completas todas las selecciones
     if selecciones_completas:
         # Centrar el botón finalizar
         col1, col2, col3 = st.columns([2, 1, 2])
@@ -472,11 +484,56 @@ def mostrar_boton_finalizar():
                 if 'datos_usuario' in st.session_state:
                     with st.spinner("Guardando respuestas..."):
                         exito, mensaje = guardar_datos_usuario_excel(
-                             st.session_state.datos_usuario, 
-                            st.session_state.planos_seleccionados)      
+                            st.session_state.datos_usuario, 
+                            st.session_state.planos_seleccionados
+                        )
+                        
+                        if exito:
+                            st.success("✅ " + mensaje)
+                            st.balloons()
+                            
+                            # Mostrar resumen final
+                            st.markdown("### 📊 Resumen de tus selecciones:")
+                            for version in ['v1', 'v2', 'v3', 'v4', 'v5']:
+                                if version in st.session_state.planos_seleccionados:
+                                    plano_id = st.session_state.planos_seleccionados[version]['plano_id']
+                                    st.write(f"- **{version.upper()}**: Plano {plano_id}")
+                            
+                            st.info("¡Gracias por tu participación! Puedes cerrar la aplicación.")
+                            
+                            # Opcional: Limpiar session state para una nueva sesión
+                            if st.button("Iniciar Nueva Evaluación"):
+                                for key in list(st.session_state.keys()):
+                                    del st.session_state[key]
+                                st.rerun()
+                        else:
+                            st.error("❌ " + mensaje)
+                            st.error("No se pudieron guardar los datos. Intenta nuevamente.")
                 else:
-                    st.error(mensaje)
-    
+                    st.error("❌ Error: No se encontraron los datos del usuario.")
+                    st.error("Por favor, regresa a la página de bienvenida y completa la información.")
+
+def guardar_backup_json(datos_usuario, selecciones):
+    """Guardar backup detallado en JSON (opcional)"""
+    try:
+        backup_data = {
+            'timestamp': datetime.now().isoformat(),
+            'usuario': datos_usuario,
+            'selecciones_finales': selecciones,
+            'proceso_v3': st.session_state.get('v3_seleccionados_por_grupo', {}),
+            'proceso_v4': st.session_state.get('v4_seleccionados_por_grupo', {}),
+            'proceso_v5': st.session_state.get('v5_seleccionados_por_grupo', {})
+        }
+        
+        timestamp_file = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"backup_usuario_{timestamp_file}.json"
+        
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(backup_data, f, indent=2, ensure_ascii=False)
+            
+        return True, f"Backup guardado en {filename}"
+    except Exception as e:
+        return False, f"Error en backup: {str(e)}"
 
 def mostrar_visualizador():
     """Página principal del visualizador de planos"""
