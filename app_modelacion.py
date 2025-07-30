@@ -10,40 +10,25 @@ from datetime import datetime
 # IMPORTANTE: st.set_page_config debe estar al inicio
 st.set_page_config(page_title="Visualizador de Planos", layout="wide")
 
-# Estado de sesión para controlar la navegación
 if 'pagina' not in st.session_state:
     st.session_state.pagina = 'bienvenida'
-
-# Inicializar estado de sesión para planos seleccionados
 if 'planos_seleccionados' not in st.session_state:
     st.session_state.planos_seleccionados = {}
-
-# Inicializar estado para las rondas de selección de v3
 if 'v3_grupo_actual' not in st.session_state:
     st.session_state.v3_grupo_actual = 1  # Grupo 1, 2, 3, o 4 (final)
-
 if 'v3_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v3_seleccionados_por_grupo = {}  # {grupo: plano_id}
-
-# Inicializar estado para las rondas de selección de v4
 if 'v4_grupo_actual' not in st.session_state:
     st.session_state.v4_grupo_actual = 1  # Grupo 1, 2, 3, o 4 (final)
-
 if 'v4_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v4_seleccionados_por_grupo = {}  # {grupo: plano_id}
-
-# Inicializar estado para las rondas de selección de v5
 if 'v5_grupo_actual' not in st.session_state:
     st.session_state.v5_grupo_actual = 1  # Grupo 1, 2, 3, 4, 5, 6, o 7 (final)
-
 if 'v5_seleccionados_por_grupo' not in st.session_state:
     st.session_state.v5_seleccionados_por_grupo = {}  # {grupo: plano_id}
 
 def mostrar_bienvenida():
-    """Página de bienvenida con formulario de usuario"""
-    # Título centrado y estilizado
-    st.markdown("""
-    <div style='text-align: center; padding: 2rem 0;'>
+    st.markdown("""<div style='text-align: center; padding: 2rem 0;'>
         <h1 style='color: #2E86AB; font-size: 3rem; margin-bottom: 1rem;'>
             Visualizador de Planos
         </h1>
@@ -52,45 +37,25 @@ def mostrar_bienvenida():
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Formulario de información del usuario
     st.markdown("### Por favor, ingresa tu información antes de continuar:")
-    
-    # Crear columnas para mejor diseño
     col1, col2 = st.columns(2)
-    
     with col1:
         nombre = st.text_input("👤 Nombre completo", placeholder="Ingrese su nombre completo")
         profesion = st.text_input("💼 Profesión", placeholder="Ej: Arquitecto, Ingeniero Civil")
         experiencia = st.number_input("📅 Años de experiencia", min_value=0, max_value=100, step=1, value=0)
-    
     with col2:
         institucion = st.text_input("🏢 Institución", placeholder="Universidad o empresa")
         correo = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com")
         telefono = st.text_input("📱 Teléfono (opcional)", placeholder="+56 9 XXXX XXXX")
-    
-    # Guardar datos en session state
-    st.session_state.datos_usuario = {
-        "nombre": nombre.strip(),
-        "profesion": profesion.strip(),
-        "experiencia": experiencia,
-        "institucion": institucion.strip(),
-        "correo": correo.strip(),
-        "telefono": telefono.strip()
-    }
-    
-    # Validación básica
+    st.session_state.datos_usuario = { "nombre": nombre.strip(), "profesion": profesion.strip(),
+        "experiencia": experiencia,"institucion": institucion.strip(),"correo": correo.strip(),
+        "telefono": telefono.strip()}
     campos_requeridos = [nombre, profesion, institucion, correo]
     campos_validos = all(campo.strip() for campo in campos_requeridos)
-    
     st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Centrar el botón
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
-        if st.button("Continuar", 
-                    disabled=not campos_validos,
-                    use_container_width=False,
+        if st.button("Continuar", disabled=not campos_validos,use_container_width=False,
                     help="Complete todos los campos requeridos para continuar" if not campos_validos else ""):
             if campos_validos:
                 st.session_state.pagina = 'planos'
@@ -113,11 +78,10 @@ def mostrar_info_usuario():
             st.session_state.pagina = 'bienvenida'
             st.rerun()
 
-# Ruta al archivo Excel
+
 EXCEL_PATH = "planos_ploteo.xlsx"
 
 def cargar_datos_excel():
-    """Carga los datos directamente desde el archivo planos_ploteo.xlsx"""
     if os.path.exists(EXCEL_PATH):
         try:
             return pd.read_excel(EXCEL_PATH)
